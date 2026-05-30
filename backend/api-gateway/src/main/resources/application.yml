@@ -4,6 +4,52 @@ server:
 spring:
   application:
     name: api-gateway
+  cloud:
+    gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:3001"
+              - "http://206.189.47.198:3001"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true
+      routes:
+        # Auth Service
+        - id: auth-service
+          uri: http://auth-service:8081
+          predicates:
+            - Path=/api/auth/**
+
+        # Event Service
+        - id: event-service
+          uri: http://event-service:8082
+          predicates:
+            - Path=/api/events/**
+
+        # Booking Service
+        - id: booking-service
+          uri: http://booking-service:8083
+          predicates:
+            - Path=/api/bookings/**
+
+        # Ticket Service
+        - id: ticket-service
+          uri: http://ticket-service:8084
+          predicates:
+            - Path=/api/tickets/**
+
+        # Notification Service
+        - id: notification-service
+          uri: http://notification-service:3000
+          predicates:
+            - Path=/api/notifications/**
 
 management:
   endpoints:
@@ -13,3 +59,5 @@ management:
   endpoint:
     health:
       show-details: always
+    gateway:
+      enabled: true

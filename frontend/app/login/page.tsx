@@ -25,24 +25,23 @@ export default function LoginPage() {
       setUser(profile);
       setMsg(`${mode === 'login' ? 'Logged in' : 'Registered'}!`);
       setMsgType('success');
-    } else {
-      setMsg(res.data?.message || 'Failed');
-      setMsgType('error');
-    }
+    } else { setMsg(res.data?.message || 'Failed'); setMsgType('error'); }
     setLoading(false);
   }
 
   if (user) {
     return (
       <div className="mx-auto max-w-md py-16">
-        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-8 text-center">
-          <div className="mb-4 text-5xl">👤</div>
-          <h2 className="text-xl font-bold">{user.fullName}</h2>
-          <p className="text-sm text-[var(--color-text-muted)]">{user.email}</p>
-          <p className="mt-1 text-xs text-[var(--color-text-muted)]">Role: {user.role} · ID: {user.id?.slice(0, 8)}...</p>
-          <div className="mt-6 flex justify-center gap-3">
-            <button onClick={() => { logout(); setUser(null); }} className="rounded-lg border border-[var(--color-border)] px-5 py-2 text-sm hover:bg-[var(--color-bg-hover)] transition-colors">Logout</button>
-            <a href="/events" className="rounded-lg bg-[var(--color-accent)] px-5 py-2 text-sm font-medium text-white no-underline hover:bg-[var(--color-accent-hover)] transition-colors">Browse Events →</a>
+        <div className="glass-card p-8 text-center">
+          <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-violet-600 text-3xl">
+            👤
+          </div>
+          <h2 className="text-xl font-bold text-white">{user.fullName}</h2>
+          <p className="text-sm text-gray-400">{user.email}</p>
+          <p className="mt-1 text-xs text-gray-500">Role: {user.role} · ID: {user.id?.slice(0, 8)}...</p>
+          <div className="mt-8 flex justify-center gap-3">
+            <button onClick={() => { logout(); setUser(null); }} className="rounded-lg border border-white/10 px-5 py-2 text-sm hover:bg-white/5 transition-all">Logout</button>
+            <a href="/events" className="btn-glow no-underline">Browse Events →</a>
           </div>
         </div>
       </div>
@@ -51,33 +50,33 @@ export default function LoginPage() {
 
   return (
     <div className="mx-auto max-w-md py-16">
-      <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-8">
-        <h2 className="mb-6 text-center text-xl font-bold">{mode === 'login' ? '🔐 Login' : '📝 Register'}</h2>
-        {msg && <div className={`mb-4 rounded-lg border px-4 py-3 text-sm ${msgType === 'error' ? 'border-red-800 bg-red-950 text-red-300' : 'border-emerald-800 bg-emerald-950 text-emerald-300'}`}>{msg}</div>}
+      <div className="glass-card p-8">
+        <h2 className="mb-6 text-center text-2xl font-bold text-white">{mode === 'login' ? '🔐 Welcome Back' : '📝 Create Account'}</h2>
+        {msg && <div className={`mb-4 ${msgType === 'error' ? 'toast-error' : 'toast-success'}`}>{msg}</div>}
         <form onSubmit={handleSubmit} className="space-y-4">
           {mode === 'register' && (
             <div>
-              <label className="mb-1 block text-xs text-[var(--color-text-muted)]">Full Name</label>
-              <input value={fullName} onChange={e => setFullName(e.target.value)} required className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-4 py-2.5 text-sm text-[var(--color-text)] focus:border-[var(--color-accent)] focus:outline-none" />
+              <label className="mb-1.5 block text-xs font-medium text-gray-400">Full Name</label>
+              <input value={fullName} onChange={e => setFullName(e.target.value)} required />
             </div>
           )}
           <div>
-            <label className="mb-1 block text-xs text-[var(--color-text-muted)]">Email</label>
-            <input type="email" value={email} onChange={e => setEmail(e.target.value)} required className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-4 py-2.5 text-sm text-[var(--color-text)] focus:border-[var(--color-accent)] focus:outline-none" />
+            <label className="mb-1.5 block text-xs font-medium text-gray-400">Email</label>
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)} required />
           </div>
           <div>
-            <label className="mb-1 block text-xs text-[var(--color-text-muted)]">Password</label>
-            <input type="password" value={password} onChange={e => setPassword(e.target.value)} required className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-4 py-2.5 text-sm text-[var(--color-text)] focus:border-[var(--color-accent)] focus:outline-none" />
+            <label className="mb-1.5 block text-xs font-medium text-gray-400">Password</label>
+            <input type="password" value={password} onChange={e => setPassword(e.target.value)} required />
           </div>
-          <button type="submit" disabled={loading} className="w-full rounded-lg bg-[var(--color-accent)] py-2.5 font-medium text-white hover:bg-[var(--color-accent-hover)] disabled:opacity-50 transition-colors">
+          <button type="submit" disabled={loading} className="btn-glow w-full text-center disabled:opacity-50">
             {loading ? 'Loading...' : mode === 'login' ? 'Login' : 'Register'}
           </button>
         </form>
-        <p className="mt-4 text-center text-sm text-[var(--color-text-muted)]">
+        <p className="mt-4 text-center text-sm text-gray-500">
           {mode === 'login' ? (
-            <>No account? <button onClick={() => setMode('register')} className="text-[var(--color-accent)] hover:underline">Register</button></>
+            <>No account? <button onClick={() => setMode('register')} className="text-blue-400 hover:underline">Register</button></>
           ) : (
-            <>Have account? <button onClick={() => setMode('login')} className="text-[var(--color-accent)] hover:underline">Login</button></>
+            <>Have account? <button onClick={() => setMode('login')} className="text-blue-400 hover:underline">Login</button></>
           )}
         </p>
       </div>

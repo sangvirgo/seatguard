@@ -1,39 +1,34 @@
-// SeatGuard API Client
-// Direct service URLs (API Gateway routing may not be complete)
+// SeatGuard API Client — All requests go through API Gateway
 
-const AUTH_URL = process.env.NEXT_PUBLIC_AUTH_URL || 'http://localhost:8081';
-const EVENT_URL = process.env.NEXT_PUBLIC_EVENT_URL || 'http://localhost:8082';
-const BOOKING_URL = process.env.NEXT_PUBLIC_BOOKING_URL || 'http://localhost:8083';
-const TICKET_URL = process.env.NEXT_PUBLIC_TICKET_URL || 'http://localhost:8084';
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
 
-function getHeaders(userId?: string): HeadersInit {
+function getHeaders(): HeadersInit {
   const headers: HeadersInit = { 'Content-Type': 'application/json' };
   if (typeof window !== 'undefined') {
     const token = localStorage.getItem('token');
     if (token) headers['Authorization'] = `Bearer ${token}`;
-    const uid = userId || localStorage.getItem('userId');
+    const uid = localStorage.getItem('userId');
     if (uid) headers['X-User-Id'] = uid;
   }
   return headers;
 }
 
-async function apiFetch(url: string, options: RequestInit = {}) {
-  const res = await fetch(url, options);
-  const data = await res.json();
+async function apiFetch(path: string, options: RequestInit = {}) {
+  const url = `${API_BASE}${path}`;
+  const res = await fetch(url, { ...options, headers: { ...getHeaders(), ...options.headers } });
+  const data = await res.json().catch(() => ({}));
   return { status: res.status, data, ok: res.ok };
 }
 
 // ─── Auth ──────────────────────────────────────────────
 export async function register(email: string, password: string, fullName: string) {
-  const res = await apiFetch(`${AUTH_URL}/api/auth/register`, {
+  const res = await apiFetch('/api/auth/register', {
     method: 'POST',
-    headers: getHeaders(),
     body: JSON.stringify({ email, password, fullName, phone: '+84900000000' }),
   });
   if (res.ok && res.data.accessToken) {
     localStorage.setItem('token', res.data.accessToken);
     localStorage.setItem('refreshToken', res.data.refreshToken);
-    // Get userId from /me
     const me = await getProfile();
     if (me) localStorage.setItem('userId', me.id);
   }
@@ -41,9 +36,8 @@ export async function register(email: string, password: string, fullName: string
 }
 
 export async function login(email: string, password: string) {
-  const res = await apiFetch(`${AUTH_URL}/api/auth/login`, {
+  const res = await apiFetch('/api/auth/login', {
     method: 'POST',
-    headers: getHeaders(),
     body: JSON.stringify({ email, password }),
   });
   if (res.ok && res.data.accessToken) {
@@ -56,9 +50,7 @@ export async function login(email: string, password: string) {
 }
 
 export async function getProfile() {
-  const res = await apiFetch(`${AUTH_URL}/api/auth/me`, {
-    headers: getHeaders(),
-  });
+  const res = await apiFetch('/api/auth/me');
   return res.ok ? res.data : null;
 }
 
@@ -78,23 +70,18 @@ export function getUserId() {
 
 // ─── Events ───────────────────────────────────────────
 export async function listEvents() {
-  const res = await apiFetch(`${EVENT_URL}/api/events?size=100`, {
-    headers: getHeaders(),
-  });
+  const res = await apiFetch('/api/events?size=100');
   return res.ok ? (res.data.data?.content || res.data.content || []) : [];
 }
 
 export async function getEvent(id: string) {
-  const res = await apiFetch(`${EVENT_URL}/api/events/${id}`, {
-    headers: getHeaders(),
-  });
+  const res = await apiFetch(`/api/events/${id}`);
   return res.ok ? res.data.data || res.data : null;
 }
 
 export async function createEvent(name: string, venue: string, category: string) {
-  const res = await apiFetch(`${EVENT_URL}/api/events`, {
+  return apiFetch('/api/events', {
     method: 'POST',
-    headers: getHeaders(),
     body: JSON.stringify({
       name, venue, category,
       description: 'Demo event created from SeatGuard frontend',
@@ -102,45 +89,35 @@ export async function createEvent(name: string, venue: string, category: string)
       endTime: new Date(Date.now() + 2 * 86400000).toISOString(),
     }),
   });
-  return res;
 }
 
 export async function addSection(eventId: string, name: string, price: number, capacity: number) {
-  return apiFetch(`${EVENT_URL}/api/events/${eventId}/sections`, {
+  return apiFetch(`/api/events/${eventId}/sections`, {
     method: 'POST',
-    headers: getHeaders(),
     body: JSON.stringify({ name, description: 'Section', price, capacity }),
   });
 }
 
 export async function generateSeats(eventId: string, rows: number, seatsPerRow: number) {
-  return apiFetch(`${EVENT_URL}/api/events/${eventId}/seats/generate`, {
+  return apiFetch(`/api/events/${eventId}/seats/generate`, {
     method: 'POST',
-    headers: getHeaders(),
     body: JSON.stringify({ rowsPerSection: rows, seatsPerRow }),
   });
 }
 
 export async function publishEvent(eventId: string) {
-  return apiFetch(`${EVENT_URL}/api/events/${eventId}/publish`, {
-    method: 'POST',
-    headers: getHeaders(),
-  });
+  return apiFetch(`/api/events/${eventId}/publish`, { method: 'POST' });
 }
 
 export async function getSeatMap(eventId: string) {
-  const res = await apiFetch(`${EVENT_URL}/api/events/${eventId}/seat-map`, {
-    headers: getHeaders(),
-  });
+  const res = await apiFetch(`/api/events/${eventId}/seat-map`);
   return res.ok ? res.data.data || res.data : null;
 }
 
 // ─── Bookings ─────────────────────────────────────────
 export async function holdSeat(eventId: string, seatId: string) {
-  const userId = getUserId();
-  return apiFetch(`${BOOKING_URL}/api/bookings/hold`, {
+  return apiFetch('/api/bookings/hold', {
     method: 'POST',
-    headers: getHeaders(),
     body: JSON.stringify({
       eventId, seatId,
       idempotencyKey: `web-${Date.now()}-${Math.random().toString(36).slice(2)}`,
@@ -149,45 +126,33 @@ export async function holdSeat(eventId: string, seatId: string) {
 }
 
 export async function payBooking(bookingId: string) {
-  return apiFetch(`${BOOKING_URL}/api/bookings/${bookingId}/pay`, {
+  return apiFetch(`/api/bookings/${bookingId}/pay`, {
     method: 'POST',
-    headers: getHeaders(),
     body: JSON.stringify({ paymentMethod: 'CREDIT_CARD' }),
   });
 }
 
 export async function getBooking(bookingId: string) {
-  return apiFetch(`${BOOKING_URL}/api/bookings/${bookingId}`, {
-    headers: getHeaders(),
-  });
+  return apiFetch(`/api/bookings/${bookingId}`);
 }
 
 // ─── Tickets ──────────────────────────────────────────
 export async function getMyTickets() {
-  const userId = getUserId();
-  const res = await apiFetch(`${TICKET_URL}/api/tickets/me`, {
-    headers: getHeaders(),
-  });
+  const res = await apiFetch('/api/tickets/me');
   return res.ok ? (res.data.data || []) : [];
 }
 
 export async function getTicket(ticketId: string) {
-  return apiFetch(`${TICKET_URL}/api/tickets/${ticketId}`, {
-    headers: getHeaders(),
-  });
+  return apiFetch(`/api/tickets/${ticketId}`);
 }
 
 export async function checkInTicket(ticketId: string) {
-  return apiFetch(`${TICKET_URL}/api/tickets/${ticketId}/check-in`, {
-    method: 'POST',
-    headers: getHeaders(),
-  });
+  return apiFetch(`/api/tickets/${ticketId}/check-in`, { method: 'POST' });
 }
 
 export async function checkInByCode(code: string) {
-  return apiFetch(`${TICKET_URL}/api/tickets/check-in/by-code`, {
+  return apiFetch('/api/tickets/check-in/by-code', {
     method: 'POST',
-    headers: getHeaders(),
     body: JSON.stringify({ checkInCode: code }),
   });
 }

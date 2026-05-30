@@ -35,7 +35,7 @@ export default function EventDetailPage() {
       setSelected(null);
       getSeatMap(eventId).then(s => { if (s) setSeatMap(s); });
     } else if (res.status === 409) {
-      setMsg('Seat already held by another user');
+      setMsg('Seat already held by another user — pick a different seat');
       setMsgType('error');
       getSeatMap(eventId).then(s => { if (s) setSeatMap(s); });
     } else {
@@ -45,50 +45,52 @@ export default function EventDetailPage() {
     setLoading(false);
   }
 
-  if (!event) return <div className="py-20 text-center text-[var(--color-text-muted)]">Loading...</div>;
+  if (!event) return <div className="py-20 text-center text-gray-500">Loading...</div>;
 
   return (
     <div>
       <div className="mb-8 flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold">{event.name}</h1>
-          <p className="text-[var(--color-text-muted)]">📍 {event.venue} · {event.category}</p>
+          <h1 className="text-3xl font-bold text-white">{event.name}</h1>
+          <p className="mt-1 text-gray-400">📍 {event.venue} · {event.category}</p>
         </div>
-        <span className={`rounded-full px-3 py-1 text-xs font-semibold ${event.status === 'PUBLISHED' ? 'bg-emerald-950 text-emerald-400' : 'bg-purple-950 text-purple-400'}`}>
-          {event.status}
-        </span>
+        <span className={`badge-status ${event.status}`}>{event.status}</span>
       </div>
 
       {msg && (
-        <div className={`mb-6 rounded-lg border px-4 py-3 text-sm ${msgType === 'error' ? 'border-red-800 bg-red-950 text-red-300' : 'border-emerald-800 bg-emerald-950 text-emerald-300'}`}>
+        <div className={`mb-6 ${msgType === 'error' ? 'toast-error' : 'toast-success'}`}>
           {msg}
           {msg.includes('held') && (
-            <button onClick={() => router.push('/tickets')} className="ml-4 text-[var(--color-accent)] underline">
+            <button onClick={() => router.push('/tickets')} className="ml-4 text-blue-400 underline">
               Go to Tickets →
             </button>
           )}
         </div>
       )}
 
+      {/* Stage */}
+      <div className="mb-8 rounded-xl bg-gradient-to-r from-blue-600/20 via-violet-600/20 to-pink-600/20 p-4 text-center">
+        <span className="text-sm font-medium text-gray-300">🎤 STAGE</span>
+      </div>
+
       {/* Seat Map */}
       <div className="mb-8">
-        <h2 className="mb-4 text-xs font-semibold uppercase tracking-widest text-[var(--color-text-muted)]">Seat Map</h2>
         {!seatMap ? (
-          <div className="py-10 text-center text-[var(--color-text-muted)]">Loading seat map...</div>
+          <div className="py-10 text-center text-gray-500">Loading seat map...</div>
         ) : seatMap.sections?.length === 0 ? (
-          <div className="py-10 text-center text-[var(--color-text-muted)]">No sections</div>
+          <div className="py-10 text-center text-gray-500">No sections</div>
         ) : (
           <div className="space-y-6">
             {seatMap.sections?.map((section: any) => (
-              <div key={section.sectionId} className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-5">
+              <div key={section.sectionId} className="glass-card p-6">
                 <div className="mb-4 flex items-center justify-between">
-                  <span className="font-semibold">{section.sectionName}</span>
-                  <span className="text-sm font-medium text-[var(--color-accent)]">{(section.price || 0).toLocaleString()} VND</span>
+                  <span className="font-semibold text-white">{section.sectionName}</span>
+                  <span className="text-sm font-medium text-blue-400">{(section.price || 0).toLocaleString()} VND</span>
                 </div>
                 <div className="space-y-2">
                   {groupByRow(section.seats || []).map(([row, seats]: [string, any[]]) => (
                     <div key={row} className="flex items-center gap-2">
-                      <span className="w-8 text-center text-xs text-[var(--color-text-muted)]">{row}</span>
+                      <span className="w-8 text-center text-xs text-gray-500">{row}</span>
                       <div className="flex gap-1">
                         {seats.map((seat: any) => (
                           <button
@@ -96,15 +98,7 @@ export default function EventDetailPage() {
                             onClick={() => seat.status === 'AVAILABLE' && setSelected(seat.id)}
                             disabled={seat.status !== 'AVAILABLE'}
                             title={`${seat.row}${seat.number} — ${seat.status}`}
-                            className={`h-9 w-9 rounded-md text-xs font-bold transition-all
-                              ${seat.status === 'AVAILABLE'
-                                ? selected === seat.id
-                                  ? 'bg-[var(--color-accent)] text-white ring-2 ring-[var(--color-accent)] ring-offset-2 ring-offset-[var(--color-bg-card)]'
-                                  : 'bg-emerald-600 text-white hover:scale-110'
-                                : seat.status === 'HELD'
-                                  ? 'bg-yellow-600/60 text-yellow-200 cursor-not-allowed'
-                                  : 'bg-gray-700/40 text-gray-500 cursor-not-allowed'
-                              }`}
+                            className={`seat ${seat.status} ${selected === seat.id ? 'selected' : ''}`}
                           >
                             {seat.number}
                           </button>
@@ -113,9 +107,9 @@ export default function EventDetailPage() {
                     </div>
                   ))}
                 </div>
-                <div className="mt-3 flex gap-4 text-xs text-[var(--color-text-muted)]">
+                <div className="mt-3 flex gap-4 text-xs text-gray-500">
                   <span>🟢 Available</span><span>🟡 Held</span><span>⚫ Sold</span>
-                  {selected && <span className="text-[var(--color-accent)]">Selected: {selected.slice(0, 8)}...</span>}
+                  {selected && <span className="text-blue-400">Selected: {selected.slice(0, 8)}...</span>}
                 </div>
               </div>
             ))}
@@ -126,7 +120,7 @@ export default function EventDetailPage() {
       {/* Actions */}
       <div className="flex gap-3">
         <button onClick={handleHold} disabled={!selected || loading}
-          className="rounded-xl bg-[var(--color-accent)] px-8 py-3 font-semibold text-white hover:bg-[var(--color-accent-hover)] disabled:opacity-50 transition-colors">
+          className="btn-glow disabled:opacity-50">
           {loading ? 'Holding...' : selected ? '🎫 Hold Selected Seat' : 'Pick a Seat First'}
         </button>
       </div>
