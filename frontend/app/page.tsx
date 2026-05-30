@@ -87,84 +87,90 @@ export default function HomePage() {
       </section>
 
       {/* ═══════════ UPCOMING EVENTS ═══════════ */}
-      <section className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
-        <div className="mb-8 flex items-end justify-between">
-          <div>
-            <h2 className="text-2xl font-bold text-white">Upcoming Events</h2>
-            <p className="mt-1 text-sm text-gray-400">Don&apos;t miss out on these amazing experiences</p>
+      <section className="py-16">
+        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-8 flex items-end justify-between">
+            <div>
+              <h2 className="text-2xl font-bold text-white">Upcoming Events</h2>
+              <p className="mt-1 text-sm text-gray-400">Don&apos;t miss out on these amazing experiences</p>
+            </div>
+            <Link href="/events" className="text-sm text-blue-400 hover:text-blue-300 no-underline transition-colors">
+              View all →
+            </Link>
           </div>
-          <Link href="/events" className="text-sm text-blue-400 hover:text-blue-300 no-underline transition-colors">
-            View all →
-          </Link>
+          {displayEvents.length > 0 ? (
+            <div className="flex flex-wrap justify-center gap-6">
+              {displayEvents.map((e: any) => (
+                <EventCard
+                  key={e.id}
+                  id={e.id}
+                  name={e.name}
+                  venue={e.venue}
+                  category={e.category}
+                  status={e.status}
+                  startTime={e.startTime}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="glass-card p-12 text-center">
+              <p className="text-gray-400 text-lg">No events yet</p>
+              <p className="text-gray-500 text-sm mt-2">Check back soon for upcoming events!</p>
+            </div>
+          )}
         </div>
-        {displayEvents.length > 0 ? (
-          <div className="flex flex-wrap justify-center gap-6">
-            {displayEvents.map((e: any) => (
-              <EventCard
-                key={e.id}
-                id={e.id}
-                name={e.name}
-                venue={e.venue}
-                category={e.category}
-                status={e.status}
-                startTime={e.startTime}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="glass-card p-12 text-center">
-            <p className="text-gray-400 text-lg">No events yet</p>
-            <p className="text-gray-500 text-sm mt-2">Check back soon for upcoming events!</p>
-          </div>
-        )}
       </section>
 
       {/* ═══════════ HOW IT WORKS ═══════════ */}
-      <section className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
-        <div className="mb-10 text-center">
-          <h2 className="text-2xl font-bold text-white">How SeatGuard Works</h2>
-          <p className="mt-2 text-sm text-gray-400">Five simple steps to your perfect seat</p>
-        </div>
-        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5">
-          {steps.map((step, i) => {
-            const Icon = step.icon;
-            return (
-              <div key={i} className="glass-card overflow-hidden p-6 min-h-[180px] text-center relative">
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 h-7 w-7 rounded-full bg-gradient-to-br from-blue-600 to-violet-600 flex items-center justify-center text-xs font-bold text-white shadow-lg shadow-blue-500/30">
-                  {i + 1}
+      <section className="py-16">
+        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-10 text-center">
+            <h2 className="text-2xl font-bold text-white">How SeatGuard Works</h2>
+            <p className="mt-2 text-sm text-gray-400">Five simple steps to your perfect seat</p>
+          </div>
+          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5">
+            {steps.map((step, i) => {
+              const Icon = step.icon;
+              return (
+                <div key={i} className="glass-card overflow-hidden p-6 min-h-[180px] text-center relative">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 h-7 w-7 rounded-full bg-gradient-to-br from-blue-600 to-violet-600 flex items-center justify-center text-xs font-bold text-white shadow-lg shadow-blue-500/30">
+                    {i + 1}
+                  </div>
+                  <div className="mt-5 mb-4 flex justify-center">
+                    <Icon className="w-8 h-8 text-blue-400" />
+                  </div>
+                  <h3 className="mb-2 text-sm font-semibold text-white leading-snug">{step.title}</h3>
+                  <p className="text-xs text-gray-400 line-clamp-3 leading-relaxed">{step.desc}</p>
                 </div>
-                <div className="mt-5 mb-4 flex justify-center">
-                  <Icon className="w-8 h-8 text-blue-400" />
-                </div>
-                <h3 className="mb-2 text-sm font-semibold text-white leading-snug">{step.title}</h3>
-                <p className="text-xs text-gray-400 line-clamp-3 leading-relaxed">{step.desc}</p>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </section>
 
       {/* ═══════════ WHY SEATGUARD ═══════════ */}
-      <section className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
-        <div className="mb-10 text-center">
-          <h2 className="text-2xl font-bold text-white">Why Choose SeatGuard</h2>
-          <p className="mt-2 text-sm text-gray-400">Built for reliability, designed for you</p>
-        </div>
-        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-          {features.map((f, i) => {
-            const Icon = f.icon;
-            return (
-              <div key={i} className="glass-card overflow-hidden p-6 min-h-[200px] flex gap-4">
-                <div className="flex-shrink-0 w-12 h-12 flex items-center justify-center">
-                  <Icon className="w-8 h-8 text-violet-400" />
+      <section className="py-16">
+        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-10 text-center">
+            <h2 className="text-2xl font-bold text-white">Why Choose SeatGuard</h2>
+            <p className="mt-2 text-sm text-gray-400">Built for reliability, designed for you</p>
+          </div>
+          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+            {features.map((f, i) => {
+              const Icon = f.icon;
+              return (
+                <div key={i} className="glass-card overflow-hidden p-6 min-h-[200px] flex gap-4">
+                  <div className="flex-shrink-0 w-12 h-12 flex items-center justify-center">
+                    <Icon className="w-8 h-8 text-violet-400" />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="mb-2 font-semibold text-white leading-snug">{f.title}</h3>
+                    <p className="text-sm text-gray-400 line-clamp-3 leading-relaxed">{f.desc}</p>
+                  </div>
                 </div>
-                <div className="min-w-0">
-                  <h3 className="mb-2 font-semibold text-white leading-snug">{f.title}</h3>
-                  <p className="text-sm text-gray-400 line-clamp-3 leading-relaxed">{f.desc}</p>
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </section>
 
