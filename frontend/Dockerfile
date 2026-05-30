@@ -6,6 +6,7 @@ COPY tsconfig.json ./
 COPY next.config.js ./
 COPY postcss.config.js ./
 COPY app ./app
+COPY components ./components
 COPY lib ./lib
 COPY public ./public
 RUN npm run build
