@@ -6,8 +6,8 @@ spring:
     name: booking-service
   datasource:
     url: jdbc:postgresql://localhost:5432/seatguard_booking
-    username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:postgres}
+    username: ${DB_USERNAME:seatguard}
+    password: ${DB_PASSWORD:seatguard_dev_2026}
   jpa:
     hibernate:
       ddl-auto: update
@@ -16,12 +16,11 @@ spring:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
-  # Kafka config - uncomment when broker is available
-  # kafka:
-  #   bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
-  #   producer:
-  #     key-serializer: org.apache.kafka.common.serialization.StringSerializer
-  #     value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
 management:
   endpoints:
@@ -32,8 +31,11 @@ management:
     health:
       show-details: always
 
-# Booking-specific configuration
 booking:
   hold-ttl-seconds: ${BOOKING_HOLD_TTL:300}
   default-amount: ${BOOKING_DEFAULT_AMOUNT:50.00}
   expiry-check-interval-ms: ${BOOKING_EXPIRY_CHECK_MS:30000}
+
+kafka:
+  topics:
+    booking-events: booking-events

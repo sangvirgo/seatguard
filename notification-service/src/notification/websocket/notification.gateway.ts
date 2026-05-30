@@ -37,7 +37,7 @@ export class NotificationGateway implements OnGatewayConnection, OnGatewayDiscon
     if (!this.userSockets.has(userId)) {
       this.userSockets.set(userId, new Set());
     }
-    this.userSockets.get(userId).add(client.id);
+    this.userSockets.get(userId)!.add(client.id);
 
     this.logger.log(`Client connected: ${client.id} (user: ${userId})`);
   }
@@ -49,9 +49,11 @@ export class NotificationGateway implements OnGatewayConnection, OnGatewayDiscon
 
     if (userId && this.userSockets.has(userId)) {
       const sockets = this.userSockets.get(userId);
-      sockets.delete(client.id);
-      if (sockets.size === 0) {
-        this.userSockets.delete(userId);
+      if (sockets) {
+        sockets.delete(client.id);
+        if (sockets.size === 0) {
+          this.userSockets.delete(userId);
+        }
       }
     }
 

@@ -41,7 +41,7 @@ export class NotificationService {
     return { items, total, page, size };
   }
 
-  async markAsRead(notificationId: string): Promise<Notification> {
+  async markAsRead(notificationId: string): Promise<Notification | null> {
     await this.notificationRepo.update(notificationId, { isRead: true });
     return this.notificationRepo.findOneBy({ id: notificationId });
   }

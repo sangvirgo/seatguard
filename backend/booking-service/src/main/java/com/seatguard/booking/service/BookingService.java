@@ -26,6 +26,7 @@ public class BookingService {
 
     private final BookingRepository bookingRepository;
     private final RedisLockService redisLockService;
+    private final BookingEventProducer eventProducer;
 
     @Value("${booking.hold-ttl-seconds:300}")
     private long holdTtlSeconds;
@@ -33,9 +34,10 @@ public class BookingService {
     @Value("${booking.default-amount:50.00}")
     private BigDecimal defaultAmount;
 
-    public BookingService(BookingRepository bookingRepository, RedisLockService redisLockService) {
+    public BookingService(BookingRepository bookingRepository, RedisLockService redisLockService, BookingEventProducer eventProducer) {
         this.bookingRepository = bookingRepository;
         this.redisLockService = redisLockService;
+        this.eventProducer = eventProducer;
     }
 
     @Transactional
@@ -75,8 +77,8 @@ public class BookingService {
         booking = bookingRepository.save(booking);
         log.info("Booking held: id={}, seatId={}, userId={}", booking.getId(), request.seatId(), userId);
 
-        // e. Kafka publish skipped - no Kafka broker configured in dev
-        // TODO: publish BOOKING_HELD event when Kafka is available
+        // e. Publish BOOKING_HELD to Kafka
+        eventProducer.publishBookingHeld(booking);
 
         return BookingResponse.from(booking);
     }
@@ -106,7 +108,8 @@ public class BookingService {
         booking = bookingRepository.save(booking);
         log.info("Booking confirmed: id={}, paymentMethod={}", bookingId, request.paymentMethod());
 
-        // c. Kafka publish skipped - TODO: publish BOOKING_CONFIRMED
+        // c. Publish BOOKING_CONFIRMED to Kafka
+        eventProducer.publishBookingConfirmed(booking);
 
         // Release the lock since booking is confirmed
         redisLockService.releaseLock(booking.getSeatId().toString());
@@ -135,7 +138,8 @@ public class BookingService {
         booking = bookingRepository.save(booking);
         log.info("Booking cancelled: id={}, userId={}", bookingId, userId);
 
-        // c. Release Redis lock
+        // c. Publish BOOKING_CANCELLED to Kafka and release Redis lock
+        eventProducer.publishBookingCancelled(booking);
         redisLockService.releaseLock(booking.getSeatId().toString());
 
         return BookingResponse.from(booking);

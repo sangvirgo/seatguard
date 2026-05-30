@@ -6,8 +6,8 @@ spring:
     name: auth-service
   datasource:
     url: jdbc:postgresql://localhost:5432/seatguard_auth
-    username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:postgres}
+    username: ${DB_USERNAME:seatguard}
+    password: ${DB_PASSWORD:seatguard_dev_2026}
   jpa:
     hibernate:
       ddl-auto: update

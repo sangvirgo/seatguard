@@ -30,6 +30,9 @@ public class Ticket {
     @Column(name = "qr_code_data", columnDefinition = "TEXT")
     private String qrCodeData;
 
+    @Column(name = "seat_info", length = 200)
+    private String seatInfo;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private TicketStatus status;
@@ -78,6 +81,9 @@ public class Ticket {
 
     public String getQrCodeData() { return qrCodeData; }
     public void setQrCodeData(String qrCodeData) { this.qrCodeData = qrCodeData; }
+
+    public String getSeatInfo() { return seatInfo; }
+    public void setSeatInfo(String seatInfo) { this.seatInfo = seatInfo; }
 
     public TicketStatus getStatus() { return status; }
     public void setStatus(TicketStatus status) { this.status = status; }
