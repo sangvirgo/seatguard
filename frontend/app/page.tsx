@@ -39,7 +39,7 @@ export default function HomePage() {
 
   useEffect(() => {
     if (isLoggedIn()) getProfile().then(u => { if (u) setUser(u); });
-    listEvents().then(e => { if (e.length > 0) setEvents(e.slice(0, 6)); });
+    listEvents().then(e => { if (e.length >= 3) setEvents(e.slice(0, 6)); });
   }, []);
 
   const displayEvents = events.length > 0 ? events : featuredDemo;
@@ -79,7 +79,7 @@ export default function HomePage() {
             </Link>
           </div>
           <div className="mt-8">
-            <Link href="/proof" className="text-xs text-gray-600 hover:text-gray-400 no-underline transition-colors">
+            <Link href="/proof" className="text-[10px] text-gray-600 opacity-60 hover:opacity-100 no-underline transition-colors">
               Engineering proof →
             </Link>
           </div>
@@ -87,7 +87,7 @@ export default function HomePage() {
       </section>
 
       {/* ═══════════ UPCOMING EVENTS ═══════════ */}
-      <section className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 mb-24">
+      <section className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
         <div className="mb-8 flex items-end justify-between">
           <div>
             <h2 className="text-2xl font-bold text-white">Upcoming Events</h2>
@@ -98,7 +98,7 @@ export default function HomePage() {
           </Link>
         </div>
         {displayEvents.length > 0 ? (
-          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="flex flex-wrap justify-center gap-6">
             {displayEvents.map((e: any) => (
               <EventCard
                 key={e.id}
@@ -120,7 +120,7 @@ export default function HomePage() {
       </section>
 
       {/* ═══════════ HOW IT WORKS ═══════════ */}
-      <section className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 mb-24">
+      <section className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
         <div className="mb-10 text-center">
           <h2 className="text-2xl font-bold text-white">How SeatGuard Works</h2>
           <p className="mt-2 text-sm text-gray-400">Five simple steps to your perfect seat</p>
@@ -129,7 +129,7 @@ export default function HomePage() {
           {steps.map((step, i) => {
             const Icon = step.icon;
             return (
-              <div key={i} className="glass-card overflow-hidden p-6 text-center relative">
+              <div key={i} className="glass-card overflow-hidden p-6 min-h-[180px] text-center relative">
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 h-7 w-7 rounded-full bg-gradient-to-br from-blue-600 to-violet-600 flex items-center justify-center text-xs font-bold text-white shadow-lg shadow-blue-500/30">
                   {i + 1}
                 </div>
@@ -145,7 +145,7 @@ export default function HomePage() {
       </section>
 
       {/* ═══════════ WHY SEATGUARD ═══════════ */}
-      <section className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 mb-24">
+      <section className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
         <div className="mb-10 text-center">
           <h2 className="text-2xl font-bold text-white">Why Choose SeatGuard</h2>
           <p className="mt-2 text-sm text-gray-400">Built for reliability, designed for you</p>
@@ -154,7 +154,7 @@ export default function HomePage() {
           {features.map((f, i) => {
             const Icon = f.icon;
             return (
-              <div key={i} className="glass-card overflow-hidden p-6 flex gap-4">
+              <div key={i} className="glass-card overflow-hidden p-6 min-h-[200px] flex gap-4">
                 <div className="flex-shrink-0 w-12 h-12 flex items-center justify-center">
                   <Icon className="w-8 h-8 text-violet-400" />
                 </div>

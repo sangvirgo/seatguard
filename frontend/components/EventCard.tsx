@@ -38,7 +38,7 @@ export default function EventCard({ id, name, venue, category, status, startTime
     : null;
 
   return (
-    <Link href={`/events/${id}`} className="group no-underline">
+    <Link href={`/events/${id}`} className="group no-underline w-full max-w-sm">
       <div className="glass-card overflow-hidden">
         <div className={`relative h-40 bg-gradient-to-br ${gradient} flex items-center justify-center`}>
           <span className="text-6xl opacity-60 group-hover:opacity-80 transition-opacity">{icon}</span>
