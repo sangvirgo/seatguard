@@ -21,8 +21,8 @@ export default function Navbar() {
   }
 
   return (
-    <header className="sticky top-0 z-50 border-b border-white/5 bg-[#050510]/80 backdrop-blur-xl">
-      <div className="container-main flex items-center justify-between py-4">
+    <header className="sticky top-0 z-50 border-b border-white/5 bg-black/60 backdrop-blur-xl">
+      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 flex items-center justify-between py-4">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 no-underline">
           <span className="text-2xl">🛡️</span>
@@ -39,9 +39,6 @@ export default function Navbar() {
           <Link href="/tickets" className="text-sm font-medium text-gray-400 hover:text-white no-underline transition-colors">
             My Tickets
           </Link>
-          <Link href="/proof" className="text-sm font-medium text-gray-400 hover:text-white no-underline transition-colors">
-            Proof
-          </Link>
           {user ? (
             <div className="flex items-center gap-3">
               <span className="text-sm text-gray-400">{user.fullName || user.email}</span>
@@ -53,7 +50,10 @@ export default function Navbar() {
               </button>
             </div>
           ) : (
-            <Link href="/login" className="btn-glow !py-2 !px-5 text-sm no-underline">
+            <Link
+              href="/login"
+              className="inline-block bg-gradient-to-r from-blue-600 to-violet-600 text-white rounded-xl px-5 py-2 text-sm font-semibold no-underline hover:shadow-lg hover:shadow-blue-500/25 transition-all"
+            >
               Login
             </Link>
           )}
@@ -73,16 +73,13 @@ export default function Navbar() {
 
       {/* Mobile Menu */}
       {menuOpen && (
-        <div className="md:hidden border-t border-white/5 bg-[#050510]/95 backdrop-blur-xl">
-          <div className="container-main flex flex-col gap-4 py-6">
+        <div className="md:hidden border-t border-white/5 bg-black/95 backdrop-blur-xl">
+          <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-col gap-4 py-6">
             <Link href="/events" onClick={() => setMenuOpen(false)} className="text-sm font-medium text-gray-400 hover:text-white no-underline transition-colors">
               Events
             </Link>
             <Link href="/tickets" onClick={() => setMenuOpen(false)} className="text-sm font-medium text-gray-400 hover:text-white no-underline transition-colors">
               My Tickets
-            </Link>
-            <Link href="/proof" onClick={() => setMenuOpen(false)} className="text-sm font-medium text-gray-400 hover:text-white no-underline transition-colors">
-              Proof
             </Link>
             {user ? (
               <div className="flex flex-col gap-3 pt-2 border-t border-white/5">
@@ -95,7 +92,11 @@ export default function Navbar() {
                 </button>
               </div>
             ) : (
-              <Link href="/login" onClick={() => setMenuOpen(false)} className="btn-glow !py-2 text-sm no-underline text-center">
+              <Link
+                href="/login"
+                onClick={() => setMenuOpen(false)}
+                className="inline-block bg-gradient-to-r from-blue-600 to-violet-600 text-white rounded-xl px-5 py-2 text-sm font-semibold no-underline text-center"
+              >
                 Login
               </Link>
             )}

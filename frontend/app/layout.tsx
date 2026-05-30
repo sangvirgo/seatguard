@@ -20,17 +20,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <main className="flex-1">
           {children}
         </main>
-        <footer className="border-t border-white/5 py-8">
-          <div className="container-main flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <span className="text-lg">🛡️</span>
-              <span className="text-sm font-bold text-white">Seat<span className="gradient-text">Guard</span></span>
-            </div>
-            <p className="text-xs text-gray-500">
-              Built with Spring Boot · Redis · Kafka · PostgreSQL · Next.js
-            </p>
-          </div>
-        </footer>
       </body>
     </html>
   );
