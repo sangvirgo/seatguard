@@ -99,7 +99,7 @@ export default function HomePage() {
             </Link>
           </div>
           {displayEvents.length > 0 ? (
-            <div className="flex flex-wrap justify-center gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center">
               {displayEvents.map((e: any) => (
                 <EventCard
                   key={e.id}
@@ -132,11 +132,11 @@ export default function HomePage() {
             {steps.map((step, i) => {
               const Icon = step.icon;
               return (
-                <div key={i} className="glass-card overflow-hidden p-6 min-h-[180px] text-center relative">
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 h-7 w-7 rounded-full bg-gradient-to-br from-blue-600 to-violet-600 flex items-center justify-center text-xs font-bold text-white shadow-lg shadow-blue-500/30">
+                <div key={i} className="glass-card overflow-hidden p-6 min-h-[180px] text-center">
+                  <div className="mb-3 mx-auto h-8 w-8 rounded-full bg-gradient-to-br from-blue-600 to-violet-600 flex items-center justify-center text-xs font-bold text-white shadow-lg shadow-blue-500/30">
                     {i + 1}
                   </div>
-                  <div className="mt-5 mb-4 flex justify-center">
+                  <div className="mb-3 flex justify-center">
                     <Icon className="w-8 h-8 text-blue-400" />
                   </div>
                   <h3 className="mb-2 text-sm font-semibold text-white leading-snug">{step.title}</h3>
@@ -159,11 +159,11 @@ export default function HomePage() {
             {features.map((f, i) => {
               const Icon = f.icon;
               return (
-                <div key={i} className="glass-card overflow-hidden p-6 min-h-[200px] flex gap-4">
-                  <div className="flex-shrink-0 w-12 h-12 flex items-center justify-center">
+                <div key={i} className="glass-card overflow-hidden p-6 min-h-[200px]">
+                  <div className="mb-4 w-12 h-12 flex items-center justify-center">
                     <Icon className="w-8 h-8 text-violet-400" />
                   </div>
-                  <div className="min-w-0">
+                  <div>
                     <h3 className="mb-2 font-semibold text-white leading-snug">{f.title}</h3>
                     <p className="text-sm text-gray-400 line-clamp-3 leading-relaxed">{f.desc}</p>
                   </div>
