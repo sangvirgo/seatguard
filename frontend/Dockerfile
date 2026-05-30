@@ -4,8 +4,10 @@ COPY package*.json ./
 RUN npm ci --quiet
 COPY tsconfig.json ./
 COPY next.config.js ./
+COPY postcss.config.js ./
 COPY app ./app
 COPY lib ./lib
+COPY public ./public
 RUN npm run build
 
 FROM node:22-alpine
