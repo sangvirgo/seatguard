@@ -8,9 +8,7 @@ const bookingError = new Counter('booking_error');
 const doubleBookingRate = new Counter('double_booking_count');
 const bookingLatency = new Trend('booking_latency');
 
-const BASE_URL = __ENV.BASE_URL || 'http://localhost:8083';
-const AUTH_URL = __ENV.AUTH_URL || 'http://localhost:8081';
-const EVENT_URL = __ENV.EVENT_URL || 'http://localhost:8082';
+const BASE_URL = __ENV.BASE_URL || 'http://localhost:8080';
 
 export const options = {
   scenarios: {
@@ -31,14 +29,14 @@ export const options = {
 
 export function setup() {
   // Register
-  http.post(`${AUTH_URL}/api/auth/register`, JSON.stringify({
+  http.post(`${BASE_URL}/api/auth/register`, JSON.stringify({
     email: 'loadtest@seatguard.com',
     password: 'SecurePass123!',
     fullName: 'Load Tester',
   }), { headers: { 'Content-Type': 'application/json' } });
 
   // Login
-  const loginRes = http.post(`${AUTH_URL}/api/auth/login`, JSON.stringify({
+  const loginRes = http.post(`${BASE_URL}/api/auth/login`, JSON.stringify({
     email: 'loadtest@seatguard.com',
     password: 'SecurePass123!',
   }), { headers: { 'Content-Type': 'application/json' } });
@@ -46,39 +44,56 @@ export function setup() {
   const token = loginRes.json('accessToken');
 
   // Get userId from /api/auth/me
-  const meRes = http.get(`${AUTH_URL}/api/auth/me`, {
+  const meRes = http.get(`${BASE_URL}/api/auth/me`, {
     headers: { 'Authorization': `Bearer ${token}` },
   });
   const userId = meRes.json('id');
 
-  // Create event
-  const eventRes = http.post(`${EVENT_URL}/api/events`, JSON.stringify({
+  const authHeaders = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`,
+  };
+
+  // Create event (requires ADMIN — use demo admin for setup)
+  const adminLogin = http.post(`${BASE_URL}/api/auth/login`, JSON.stringify({
+    email: 'demo@seatguard.com',
+    password: 'DemoPass123!',
+  }), { headers: { 'Content-Type': 'application/json' } });
+  const adminToken = adminLogin.json('accessToken');
+  const adminHeaders = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${adminToken}`,
+  };
+
+  const eventRes = http.post(`${BASE_URL}/api/events`, JSON.stringify({
     name: 'k6 Load Test Event',
     venue: 'Test Venue',
     category: 'CONCERT',
     startTime: '2026-08-01T19:00:00Z',
     endTime: '2026-08-01T23:00:00Z',
-  }), { headers: { 'Content-Type': 'application/json' } });
+  }), { headers: adminHeaders });
 
   const eventId = eventRes.json('data.id');
 
   // Add section
-  http.post(`${EVENT_URL}/api/events/${eventId}/sections`, JSON.stringify({
+  http.post(`${BASE_URL}/api/events/${eventId}/sections`, JSON.stringify({
     name: 'GA', price: 100000, capacity: 500,
-  }), { headers: { 'Content-Type': 'application/json' } });
+  }), { headers: adminHeaders });
 
   // Generate seats (5 rows x 10 = 50 seats)
-  http.post(`${EVENT_URL}/api/events/${eventId}/seats/generate`, JSON.stringify({
+  http.post(`${BASE_URL}/api/events/${eventId}/seats/generate`, JSON.stringify({
     rowsPerSection: 5, seatsPerRow: 10,
-  }), { headers: { 'Content-Type': 'application/json' } });
+  }), { headers: adminHeaders });
 
   // Publish
-  http.post(`${EVENT_URL}/api/events/${eventId}/publish`, '{}', {
-    headers: { 'Content-Type': 'application/json' },
+  http.post(`${BASE_URL}/api/events/${eventId}/publish`, '{}', {
+    headers: adminHeaders,
   });
 
   // Get seat map - pick ONE seat for all VUs to fight over
-  const mapRes = http.get(`${EVENT_URL}/api/events/${eventId}/seat-map`);
+  const mapRes = http.get(`${BASE_URL}/api/events/${eventId}/seat-map`, {
+    headers: authHeaders,
+  });
   const seatId = mapRes.json('data.sections.0.seats.0.id');
 
   console.log(`Setup: userId=${userId} eventId=${eventId} seatId=${seatId}`);
@@ -96,7 +111,6 @@ export default function (data) {
   }), {
     headers: {
       'Content-Type': 'application/json',
-      'X-User-Id': data.userId,
       'Authorization': `Bearer ${data.token}`,
     },
     timeout: '10s',
