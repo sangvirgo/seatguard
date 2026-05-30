@@ -42,14 +42,14 @@ export default function HomePage() {
 
   return (
     <div>
-      {/* Cinematic Hero */}
+      {/* Cinematic Hero - full width */}
       <section className="relative pb-24 pt-20 text-center overflow-hidden">
         {/* Spotlight effects */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none"></div>
         <div className="absolute top-20 left-1/4 w-[400px] h-[300px] bg-violet-600/8 rounded-full blur-[100px] pointer-events-none"></div>
         <div className="absolute top-10 right-1/4 w-[300px] h-[200px] bg-pink-600/6 rounded-full blur-[80px] pointer-events-none"></div>
 
-        <div className="relative z-10">
+        <div className="container-main relative z-10">
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs font-medium text-gray-400">
             <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
             Trusted by thousands of event-goers
@@ -83,7 +83,7 @@ export default function HomePage() {
       </section>
 
       {/* Featured Events */}
-      <section className="mb-24">
+      <section className="container-main mb-24">
         <div className="mb-8 flex items-end justify-between">
           <div>
             <h2 className="text-2xl font-bold text-white">Featured Events</h2>
@@ -93,7 +93,7 @@ export default function HomePage() {
             View all →
           </Link>
         </div>
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {displayEvents.map((e: any) => (
             <EventCard
               key={e.id}
@@ -109,12 +109,12 @@ export default function HomePage() {
       </section>
 
       {/* How It Works */}
-      <section className="mb-24">
+      <section className="container-main mb-24">
         <div className="mb-10 text-center">
           <h2 className="text-2xl font-bold text-white">How Booking Works</h2>
           <p className="mt-2 text-sm text-gray-400">Five simple steps to your perfect seat</p>
         </div>
-        <div className="grid gap-4 sm:grid-cols-5">
+        <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
           {steps.map((step, i) => (
             <div key={i} className="glass-card p-5 text-center relative">
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 h-6 w-6 rounded-full bg-gradient-to-br from-blue-600 to-violet-600 flex items-center justify-center text-xs font-bold text-white">
@@ -129,12 +129,12 @@ export default function HomePage() {
       </section>
 
       {/* Trust Section */}
-      <section className="mb-24">
+      <section className="container-main mb-24">
         <div className="mb-10 text-center">
           <h2 className="text-2xl font-bold text-white">Built for Reliability</h2>
           <p className="mt-2 text-sm text-gray-400">Enterprise-grade booking you can trust</p>
         </div>
-        <div className="grid gap-5 sm:grid-cols-2">
+        <div className="grid gap-5 grid-cols-1 sm:grid-cols-2">
           {trustFeatures.map((f, i) => (
             <div key={i} className="glass-card p-6 flex gap-4">
               <div className="text-3xl flex-shrink-0">{f.icon}</div>
@@ -148,7 +148,7 @@ export default function HomePage() {
       </section>
 
       {/* Trust Strip */}
-      <section className="mb-10">
+      <section className="container-main mb-10">
         <div className="glass-card p-6 text-center">
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6 text-sm">
             <div className="flex items-center gap-2">

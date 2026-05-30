@@ -65,7 +65,7 @@ export default function EventsPage() {
       {/* Hero */}
       <section className="relative mb-12 pb-8 pt-4 text-center overflow-hidden">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[200px] bg-violet-600/10 rounded-full blur-[100px] pointer-events-none"></div>
-        <div className="relative z-10">
+        <div className="container-main relative z-10">
           <h1 className="text-4xl font-bold text-white mb-3">Explore Events</h1>
           <p className="text-gray-400 mb-8">Find your next unforgettable experience</p>
           {/* Search */}
@@ -81,66 +81,68 @@ export default function EventsPage() {
         </div>
       </section>
 
-      {/* Category Chips */}
-      <div className="mb-8 flex flex-wrap justify-center gap-2">
-        {categories.map(cat => (
-          <button
-            key={cat}
-            onClick={() => setActiveCategory(cat)}
-            className={`rounded-full px-5 py-2 text-sm font-medium transition-all ${
-              activeCategory === cat
-                ? 'bg-gradient-to-r from-blue-600 to-violet-600 text-white shadow-lg'
-                : 'border border-white/10 bg-white/5 text-gray-400 hover:bg-white/10 hover:text-gray-300'
-            }`}
-          >
-            {cat}
-          </button>
-        ))}
-      </div>
-
-      {/* Create Demo Button */}
-      <div className="mb-8 flex justify-end">
-        <button
-          onClick={handleCreateDemo}
-          disabled={creating}
-          className="btn-glow !py-2.5 !px-6 text-sm disabled:opacity-50"
-        >
-          {creating ? 'Creating...' : '+ Create Demo Event'}
-        </button>
-      </div>
-
-      {/* Message */}
-      {msg && (
-        <div className={`mb-6 ${msg.includes('Error') || msg.includes('Failed') || msg.includes('login') ? 'toast-error' : 'toast-success'}`}>
-          {msg}
-        </div>
-      )}
-
-      {/* Content */}
-      {loading ? (
-        <LoadingState message="Loading events..." />
-      ) : error ? (
-        <ErrorState message={error} onRetry={loadEvents} />
-      ) : filtered.length === 0 ? (
-        <EmptyState
-          title="No events found"
-          description={search || activeCategory !== 'All' ? 'Try adjusting your search or filters' : 'Click "Create Demo Event" to get started'}
-        />
-      ) : (
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((e: any) => (
-            <EventCard
-              key={e.id}
-              id={e.id}
-              name={e.name}
-              venue={e.venue}
-              category={e.category}
-              status={e.status}
-              startTime={e.startTime}
-            />
+      <div className="container-main">
+        {/* Category Chips */}
+        <div className="mb-8 flex flex-wrap justify-center gap-2">
+          {categories.map(cat => (
+            <button
+              key={cat}
+              onClick={() => setActiveCategory(cat)}
+              className={`rounded-full px-5 py-2 text-sm font-medium transition-all ${
+                activeCategory === cat
+                  ? 'bg-gradient-to-r from-blue-600 to-violet-600 text-white shadow-lg'
+                  : 'border border-white/10 bg-white/5 text-gray-400 hover:bg-white/10 hover:text-gray-300'
+              }`}
+            >
+              {cat}
+            </button>
           ))}
         </div>
-      )}
+
+        {/* Create Demo Button */}
+        <div className="mb-8 flex justify-end">
+          <button
+            onClick={handleCreateDemo}
+            disabled={creating}
+            className="btn-glow !py-2.5 !px-6 text-sm disabled:opacity-50"
+          >
+            {creating ? 'Creating...' : '+ Create Demo Event'}
+          </button>
+        </div>
+
+        {/* Message */}
+        {msg && (
+          <div className={`mb-6 ${msg.includes('Error') || msg.includes('Failed') || msg.includes('login') ? 'toast-error' : 'toast-success'}`}>
+            {msg}
+          </div>
+        )}
+
+        {/* Content */}
+        {loading ? (
+          <LoadingState message="Loading events..." />
+        ) : error ? (
+          <ErrorState message={error} onRetry={loadEvents} />
+        ) : filtered.length === 0 ? (
+          <EmptyState
+            title="No events found"
+            description={search || activeCategory !== 'All' ? 'Try adjusting your search or filters' : 'Click "Create Demo Event" to get started'}
+          />
+        ) : (
+          <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            {filtered.map((e: any) => (
+              <EventCard
+                key={e.id}
+                id={e.id}
+                name={e.name}
+                venue={e.venue}
+                category={e.category}
+                status={e.status}
+                startTime={e.startTime}
+              />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

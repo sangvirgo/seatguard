@@ -32,7 +32,6 @@ export default function EventDetailPage() {
 
   function handleSelectSeat(seatId: string) {
     setSelected(seatId);
-    // Find seat info
     if (seatMap?.sections) {
       for (const section of seatMap.sections) {
         const seat = (section.seats || []).find((s: any) => s.id === seatId);
@@ -92,7 +91,7 @@ export default function EventDetailPage() {
       {/* Event Hero */}
       <section className="relative mb-10 pb-6 pt-4 overflow-hidden">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[250px] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none"></div>
-        <div className="relative z-10">
+        <div className="container-main relative z-10">
           <div className="flex items-start justify-between flex-wrap gap-4">
             <div>
               <div className="mb-2 flex items-center gap-3">
@@ -116,123 +115,125 @@ export default function EventDetailPage() {
         </div>
       </section>
 
-      {/* Messages */}
-      {msg && (
-        <div className={`mb-6 ${msgType === 'error' ? 'toast-error' : 'toast-success'}`}>
-          {msg}
-          {confirmed && (
-            <button onClick={() => router.push('/tickets')} className="ml-4 text-blue-400 underline">
-              Go to Tickets →
-            </button>
-          )}
-        </div>
-      )}
-
-      {/* Confirmed state */}
-      {confirmed ? (
-        <div className="glass-card p-10 text-center">
-          <div className="text-6xl mb-4">🎉</div>
-          <h2 className="text-2xl font-bold text-white mb-2">Booking Confirmed!</h2>
-          <p className="text-gray-400 mb-6">Your ticket is being issued via Kafka. Check your tickets in a few seconds.</p>
-          <div className="flex justify-center gap-4">
-            <button onClick={() => router.push('/tickets')} className="btn-glow">
-              View My Tickets →
-            </button>
-            <button onClick={() => router.push('/events')} className="rounded-xl border border-white/10 bg-white/5 px-6 py-3 font-semibold text-white hover:bg-white/10 transition-all">
-              Browse More Events
-            </button>
-          </div>
-        </div>
-      ) : (
-        <div className="grid gap-8 lg:grid-cols-3">
-          {/* Seat Map - takes 2 columns */}
-          <div className="lg:col-span-2">
-            {!seatMap ? (
-              <LoadingState message="Loading seat map..." />
-            ) : (
-              <SeatMap
-                sections={seatMap.sections || []}
-                selected={selected}
-                onSelect={handleSelectSeat}
-              />
+      <div className="container-main">
+        {/* Messages */}
+        {msg && (
+          <div className={`mb-6 ${msgType === 'error' ? 'toast-error' : 'toast-success'}`}>
+            {msg}
+            {confirmed && (
+              <button onClick={() => router.push('/tickets')} className="ml-4 text-blue-400 underline">
+                Go to Tickets →
+              </button>
             )}
           </div>
+        )}
 
-          {/* Sticky Booking Summary */}
-          <div className="lg:col-span-1">
-            <div className="sticky top-24 glass-card p-6">
-              <h3 className="text-lg font-semibold text-white mb-4">Booking Summary</h3>
+        {/* Confirmed state */}
+        {confirmed ? (
+          <div className="glass-card p-10 text-center">
+            <div className="text-6xl mb-4">🎉</div>
+            <h2 className="text-2xl font-bold text-white mb-2">Booking Confirmed!</h2>
+            <p className="text-gray-400 mb-6">Your ticket is being issued via Kafka. Check your tickets in a few seconds.</p>
+            <div className="flex justify-center gap-4">
+              <button onClick={() => router.push('/tickets')} className="btn-glow">
+                View My Tickets →
+              </button>
+              <button onClick={() => router.push('/events')} className="rounded-xl border border-white/10 bg-white/5 px-6 py-3 font-semibold text-white hover:bg-white/10 transition-all">
+                Browse More Events
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="grid gap-8 lg:grid-cols-5">
+            {/* Seat Map - 3 columns (60%) */}
+            <div className="lg:col-span-3">
+              {!seatMap ? (
+                <LoadingState message="Loading seat map..." />
+              ) : (
+                <SeatMap
+                  sections={seatMap.sections || []}
+                  selected={selected}
+                  onSelect={handleSelectSeat}
+                />
+              )}
+            </div>
 
-              {selectedSeatInfo ? (
-                <div className="space-y-3 mb-6">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-400">Section</span>
-                    <span className="text-white font-medium">{selectedSeatInfo.sectionName}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-400">Seat</span>
-                    <span className="text-white font-medium">{selectedSeatInfo.row}{selectedSeatInfo.number}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-400">Price</span>
-                    <span className="text-blue-400 font-semibold">{(selectedSeatInfo.price || 0).toLocaleString()} VND</span>
-                  </div>
-                  <div className="border-t border-white/10 pt-3">
-                    <div className="flex justify-between">
-                      <span className="text-white font-medium">Total</span>
-                      <span className="text-lg font-bold text-blue-400">{(selectedSeatInfo.price || 0).toLocaleString()} VND</span>
+            {/* Sticky Booking Summary - 2 columns (40%) */}
+            <div className="lg:col-span-2">
+              <div className="lg:sticky lg:top-24 glass-card p-6">
+                <h3 className="text-lg font-semibold text-white mb-4">Booking Summary</h3>
+
+                {selectedSeatInfo ? (
+                  <div className="space-y-3 mb-6">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-400">Section</span>
+                      <span className="text-white font-medium">{selectedSeatInfo.sectionName}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-400">Seat</span>
+                      <span className="text-white font-medium">{selectedSeatInfo.row}{selectedSeatInfo.number}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-400">Price</span>
+                      <span className="text-blue-400 font-semibold">{(selectedSeatInfo.price || 0).toLocaleString()} VND</span>
+                    </div>
+                    <div className="border-t border-white/10 pt-3">
+                      <div className="flex justify-between">
+                        <span className="text-white font-medium">Total</span>
+                        <span className="text-lg font-bold text-blue-400">{(selectedSeatInfo.price || 0).toLocaleString()} VND</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ) : (
-                <p className="text-sm text-gray-500 mb-6">Select a seat from the map to begin</p>
-              )}
+                ) : (
+                  <p className="text-sm text-gray-500 mb-6">Select a seat from the map to begin</p>
+                )}
 
-              {bookingId ? (
-                <div className="space-y-3">
-                  <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 p-3 text-sm text-emerald-400">
-                    ✅ Seat held! Complete payment to confirm.
+                {bookingId ? (
+                  <div className="space-y-3">
+                    <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 p-3 text-sm text-emerald-400">
+                      ✅ Seat held! Complete payment to confirm.
+                    </div>
+                    <button
+                      onClick={handlePay}
+                      disabled={paying}
+                      className="btn-glow w-full !bg-gradient-to-r !from-emerald-600 !to-emerald-500 disabled:opacity-50"
+                    >
+                      {paying ? 'Processing...' : '💳 Pay Now'}
+                    </button>
                   </div>
+                ) : (
                   <button
-                    onClick={handlePay}
-                    disabled={paying}
-                    className="btn-glow w-full !bg-gradient-to-r !from-emerald-600 !to-emerald-500 disabled:opacity-50"
+                    onClick={handleHold}
+                    disabled={!selected || loading}
+                    className="btn-glow w-full disabled:opacity-50"
                   >
-                    {paying ? 'Processing...' : '💳 Pay Now'}
+                    {loading ? 'Holding...' : selected ? '🔒 Hold Selected Seat' : 'Pick a Seat First'}
                   </button>
-                </div>
-              ) : (
-                <button
-                  onClick={handleHold}
-                  disabled={!selected || loading}
-                  className="btn-glow w-full disabled:opacity-50"
-                >
-                  {loading ? 'Holding...' : selected ? '🔒 Hold Selected Seat' : 'Pick a Seat First'}
-                </button>
-              )}
+                )}
 
-              {/* Seat Legend */}
-              <div className="mt-6 pt-4 border-t border-white/10">
-                <p className="text-xs text-gray-500 mb-2 font-medium">Legend</p>
-                <div className="grid grid-cols-2 gap-2 text-xs text-gray-500">
-                  <span className="flex items-center gap-1.5">
-                    <span className="inline-block h-3 w-3 rounded bg-emerald-500"></span> Available
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <span className="inline-block h-3 w-3 rounded bg-blue-500"></span> Selected
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <span className="inline-block h-3 w-3 rounded bg-yellow-500/60"></span> Held
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <span className="inline-block h-3 w-3 rounded bg-gray-600"></span> Sold
-                  </span>
+                {/* Seat Legend */}
+                <div className="mt-6 pt-4 border-t border-white/10">
+                  <p className="text-xs text-gray-500 mb-2 font-medium">Legend</p>
+                  <div className="grid grid-cols-2 gap-2 text-xs text-gray-500">
+                    <span className="flex items-center gap-1.5">
+                      <span className="inline-block h-3 w-3 rounded bg-emerald-500"></span> Available
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <span className="inline-block h-3 w-3 rounded bg-blue-500"></span> Selected
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <span className="inline-block h-3 w-3 rounded bg-yellow-500/60"></span> Held
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <span className="inline-block h-3 w-3 rounded bg-gray-600"></span> Sold
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
