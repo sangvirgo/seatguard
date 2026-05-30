@@ -127,6 +127,10 @@ services:
       SPRING_DATASOURCE_USERNAME: seatguard
       SPRING_DATASOURCE_PASSWORD: seatguard_dev_2026
       JWT_SECRET: ${JWT_SECRET}
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
+      CLOUDINARY_SECURE: ${CLOUDINARY_SECURE}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
       interval: 15s

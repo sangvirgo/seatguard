@@ -92,6 +92,11 @@ export default function EventDetailPage() {
       <section className="relative mb-10 pb-6 pt-4 overflow-hidden">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[250px] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none"></div>
         <div className="container-main relative z-10">
+          {event.coverImageUrl && (
+            <div className="mb-6 rounded-xl overflow-hidden">
+              <img src={event.coverImageUrl} alt={event.name} className="w-full h-64 object-cover" />
+            </div>
+          )}
           <div className="flex items-start justify-between flex-wrap gap-4">
             <div>
               <div className="mb-2 flex items-center gap-3">

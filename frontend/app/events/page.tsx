@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { listEvents, createEvent, addSection, generateSeats, publishEvent, isLoggedIn } from '../../lib/api';
+import { listEvents, createEvent, addSection, generateSeats, publishEvent, uploadEventImage, isLoggedIn, getProfile } from '../../lib/api';
 import EventCard from '../../components/EventCard';
 import LoadingState from '../../components/LoadingState';
 import EmptyState from '../../components/EmptyState';
@@ -17,8 +17,18 @@ export default function EventsPage() {
   const [creating, setCreating] = useState(false);
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [selectedEventId, setSelectedEventId] = useState('');
 
-  useEffect(() => { loadEvents(); }, []);
+  useEffect(() => {
+    loadEvents();
+    if (isLoggedIn()) {
+      getProfile().then(profile => {
+        if (profile?.role === 'ADMIN') setIsAdmin(true);
+      }).catch(() => {});
+    }
+  }, []);
 
   async function loadEvents() {
     setLoading(true);
@@ -52,6 +62,25 @@ export default function EventsPage() {
       setMsg('Error: ' + e.message);
     }
     setCreating(false);
+  }
+
+  async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !selectedEventId) return;
+    setUploadingImage(true);
+    setMsg('');
+    try {
+      const res = await uploadEventImage(selectedEventId, file);
+      if (res.ok) {
+        setMsg('Image uploaded successfully!');
+        loadEvents();
+      } else {
+        setMsg('Upload failed: ' + (res.data?.message || 'Unknown error'));
+      }
+    } catch (err: any) {
+      setMsg('Upload error: ' + err.message);
+    }
+    setUploadingImage(false);
   }
 
   const filtered = events.filter(e => {
@@ -100,7 +129,7 @@ export default function EventsPage() {
         </div>
 
         {/* Create Demo Button */}
-        <div className="mb-8 flex justify-end">
+        <div className="mb-8 flex flex-wrap justify-end gap-3">
           <button
             onClick={handleCreateDemo}
             disabled={creating}
@@ -109,6 +138,36 @@ export default function EventsPage() {
             {creating ? 'Creating...' : '+ Create Demo Event'}
           </button>
         </div>
+
+        {/* Admin Image Upload */}
+        {isAdmin && events.length > 0 && (
+          <div className="mb-8 glass-card p-5">
+            <h3 className="text-sm font-semibold text-white mb-3">📸 Upload Event Image (Admin)</h3>
+            <div className="flex flex-wrap items-center gap-3">
+              <select
+                value={selectedEventId}
+                onChange={e => setSelectedEventId(e.target.value)}
+                className="!py-2 !px-3 !text-sm"
+              >
+                <option value="">Select event...</option>
+                {events.map((e: any) => (
+                  <option key={e.id} value={e.id}>{e.name}</option>
+                ))}
+              </select>
+              <label className={`btn-glow !py-2 !px-4 text-sm cursor-pointer ${(!selectedEventId || uploadingImage) ? 'opacity-50 pointer-events-none' : ''}`}>
+                {uploadingImage ? 'Uploading...' : 'Choose Image'}
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                  disabled={!selectedEventId || uploadingImage}
+                />
+              </label>
+            </div>
+            <p className="mt-2 text-xs text-gray-500">JPEG, PNG, or WebP. Max 5MB.</p>
+          </div>
+        )}
 
         {/* Message */}
         {msg && (
@@ -138,6 +197,7 @@ export default function EventsPage() {
                 category={e.category}
                 status={e.status}
                 startTime={e.startTime}
+                coverImageUrl={e.coverImageUrl}
               />
             ))}
           </div>

@@ -4,6 +4,10 @@ server:
 spring:
   application:
     name: event-service
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
   datasource:
     url: jdbc:postgresql://localhost:5432/seatguard_event
     username: ${DB_USERNAME:seatguard}
@@ -33,6 +37,12 @@ management:
 
 jwt:
   secret: ${JWT_SECRET:aVeryLongAndSecureSecretKeyForSeatGuardJWT2024PleaseChangeInProduction!56}
+
+cloudinary:
+  cloud-name: ${CLOUDINARY_CLOUD_NAME:}
+  api-key: ${CLOUDINARY_API_KEY:}
+  api-secret: ${CLOUDINARY_API_SECRET:}
+  secure: ${CLOUDINARY_SECURE:true}
 
 logging:
   level:

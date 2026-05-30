@@ -109,6 +109,22 @@ export async function publishEvent(eventId: string) {
   return apiFetch(`/api/events/${eventId}/publish`, { method: 'POST' });
 }
 
+export async function uploadEventImage(eventId: string, file: File) {
+  const formData = new FormData();
+  formData.append('image', file);
+  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  const headers: HeadersInit = {};
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  const url = typeof window !== 'undefined' ? `/api/events/${eventId}/image` : `${process.env.API_GATEWAY_URL || 'http://localhost:8080'}/api/events/${eventId}/image`;
+  try {
+    const res = await fetch(url, { method: 'POST', headers, body: formData });
+    const data = await res.json().catch(() => ({}));
+    return { status: res.status, data, ok: res.ok };
+  } catch (e: any) {
+    return { status: 0, data: { message: 'Network error' }, ok: false };
+  }
+}
+
 export async function getSeatMap(eventId: string) {
   const res = await apiFetch(`/api/events/${eventId}/seat-map`);
   return res.ok ? res.data.data || res.data : null;
