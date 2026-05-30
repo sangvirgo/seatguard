@@ -2,14 +2,18 @@ package com.seatguard.booking.payment;
 
 import com.seatguard.booking.entity.Payment;
 import com.seatguard.booking.entity.PaymentMethod;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 public class VnpayPaymentProvider implements PaymentProvider {
 
-    @Value("${vnpay.enabled:false}")
-    private boolean enabled;
+    private static final Logger log = LoggerFactory.getLogger(VnpayPaymentProvider.class);
+
+    @Value("${vnpay.enabled:}")
+    private String enabledStr;
 
     @Value("${vnpay.tmn-code:}")
     private String tmnCode;
@@ -26,6 +30,15 @@ public class VnpayPaymentProvider implements PaymentProvider {
     @Value("${vnpay.ipn-url:http://localhost:8080/api/payments/vnpay/ipn}")
     private String ipnUrl;
 
+    private boolean isEnabled() {
+        return "true".equalsIgnoreCase(enabledStr != null ? enabledStr.trim() : "");
+    }
+
+    private boolean isConfigComplete() {
+        return tmnCode != null && !tmnCode.isBlank()
+                && hashSecret != null && !hashSecret.isBlank();
+    }
+
     @Override
     public PaymentMethod getMethod() {
         return PaymentMethod.VNPAY;
@@ -33,30 +46,34 @@ public class VnpayPaymentProvider implements PaymentProvider {
 
     @Override
     public PaymentResult initiatePayment(Payment payment) {
-        if (!enabled) {
+        if (!isEnabled()) {
             return PaymentResult.failed("VNPay sandbox is not configured in this demo environment");
         }
 
-        // TODO: Implement VNPay hash generation and URL building
-        // For now, return sandbox-ready status
-        String txnRef = payment.getId().toString();
-        String url = paymentUrl + "?vnp_TmnCode=" + tmnCode
-                + "&vnp_Amount=" + payment.getAmount().toBigInteger().multiply(java.math.BigInteger.valueOf(100))
-                + "&vnp_TxnRef=" + txnRef
-                + "&vnp_OrderInfo=SeatGuard Payment"
-                + "&vnp_ReturnUrl=" + returnUrl;
+        if (!isConfigComplete()) {
+            return PaymentResult.failed("VNPay sandbox credentials are incomplete. Please configure VNPAY_TMN_CODE and VNPAY_HASH_SECRET");
+        }
 
+        // TODO: Implement VNPay HMAC-SHA512 hash generation and URL building
+        String txnRef = payment.getId().toString();
+        log.info("VNPay payment initiated (sandbox-ready): txnRef={}", txnRef);
+
+        // In production, generate hash and build full URL
+        String url = paymentUrl + "?vnp_TmnCode=" + tmnCode
+                + "&vnp_TxnRef=" + txnRef
+                + "&vnp_OrderInfo=SeatGuard Payment";
         return PaymentResult.pending(url, txnRef);
     }
 
     @Override
     public boolean verifyCallback(String payload, String signature) {
-        // TODO: Implement VNPay hash verification
+        // TODO: Implement VNPay HMAC-SHA512 hash verification
+        log.warn("VNPay signature verification not implemented");
         return false;
     }
 
     @Override
     public PaymentResult handleCallback(String payload) {
-        return PaymentResult.failed("VNPay callback not implemented");
+        return PaymentResult.failed("VNPay callback verification not implemented");
     }
 }
