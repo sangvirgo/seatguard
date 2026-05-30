@@ -27,6 +27,12 @@ spring:
           predicates:
             - Path=/api/auth/**
 
+        # Auth Service - OAuth2
+        - id: auth-service-oauth
+          uri: http://auth-service:8081
+          predicates:
+            - Path=/oauth2/**
+
         # Event Service
         - id: event-service
           uri: http://event-service:8082

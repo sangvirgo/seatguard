@@ -87,6 +87,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    env_file:
+      - ../.env
     environment:
       DB_HOST: postgres
       DB_PORT: "5432"
@@ -96,6 +98,11 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/seatguard_auth
       SPRING_DATASOURCE_USERNAME: seatguard
       SPRING_DATASOURCE_PASSWORD: seatguard_dev_2026
+      JWT_SECRET: ${JWT_SECRET}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI}
+      ADMIN_EMAILS: ${ADMIN_EMAILS}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
       interval: 15s
@@ -113,10 +120,13 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    env_file:
+      - ../.env
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/seatguard_event
       SPRING_DATASOURCE_USERNAME: seatguard
       SPRING_DATASOURCE_PASSWORD: seatguard_dev_2026
+      JWT_SECRET: ${JWT_SECRET}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
       interval: 15s
@@ -138,6 +148,8 @@ services:
         condition: service_healthy
       kafka:
         condition: service_healthy
+    env_file:
+      - ../.env
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/seatguard_booking
       SPRING_DATASOURCE_USERNAME: seatguard
@@ -146,6 +158,7 @@ services:
       SPRING_DATA_REDIS_PORT: "6379"
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      JWT_SECRET: ${JWT_SECRET}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8083/actuator/health"]
       interval: 15s
@@ -165,12 +178,15 @@ services:
         condition: service_healthy
       kafka:
         condition: service_healthy
+    env_file:
+      - ../.env
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/seatguard_ticket
       SPRING_DATASOURCE_USERNAME: seatguard
       SPRING_DATASOURCE_PASSWORD: seatguard_dev_2026
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      JWT_SECRET: ${JWT_SECRET}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8084/actuator/health"]
       interval: 15s

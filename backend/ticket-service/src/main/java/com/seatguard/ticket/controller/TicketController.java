@@ -4,6 +4,8 @@ import com.seatguard.ticket.dto.*;
 import com.seatguard.ticket.service.TicketService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,8 +22,8 @@ public class TicketController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<ApiResponse<List<TicketResponse>>> getUserTickets(
-            @RequestHeader("X-User-Id") UUID userId) {
+    public ResponseEntity<ApiResponse<List<TicketResponse>>> getUserTickets() {
+        UUID userId = getCurrentUserId();
         List<TicketResponse> tickets = ticketService.getUserTickets(userId);
         return ResponseEntity.ok(ApiResponse.success(tickets));
     }
@@ -45,5 +47,13 @@ public class TicketController {
             @Valid @RequestBody CheckInRequest request) {
         CheckInResponse response = ticketService.checkInByCode(request.checkInCode());
         return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    private UUID getCurrentUserId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getPrincipal() != null) {
+            return UUID.fromString(auth.getPrincipal().toString());
+        }
+        throw new RuntimeException("User not authenticated");
     }
 }

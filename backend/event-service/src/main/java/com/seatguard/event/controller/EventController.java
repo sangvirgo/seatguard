@@ -8,6 +8,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,16 +29,17 @@ public class EventController {
     // ─── Event CRUD ──────────────────────────────────────
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<EventResponse>> createEvent(
             @Valid @RequestBody CreateEventRequest request) {
-        // TODO: get createdBy from JWT token in header
-        UUID createdBy = UUID.fromString("00000000-0000-0000-0000-000000000000");
+        UUID createdBy = getCurrentUserId();
         EventResponse response = eventService.createEvent(request, createdBy);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.ok("Event created", response));
     }
 
     @PutMapping("/{eventId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<EventResponse>> updateEvent(
             @PathVariable UUID eventId,
             @Valid @RequestBody CreateEventRequest request) {
@@ -61,6 +65,7 @@ public class EventController {
     }
 
     @PostMapping("/{eventId}/publish")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<EventResponse>> publishEvent(@PathVariable UUID eventId) {
         EventResponse response = eventService.publishEvent(eventId);
         return ResponseEntity.ok(ApiResponse.ok("Event published", response));
@@ -69,6 +74,7 @@ public class EventController {
     // ─── Section Management ──────────────────────────────
 
     @PostMapping("/{eventId}/sections")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<SectionResponse>> addSection(
             @PathVariable UUID eventId,
             @Valid @RequestBody CreateSectionRequest request) {
@@ -87,6 +93,7 @@ public class EventController {
     // ─── Seat Management ─────────────────────────────────
 
     @PostMapping("/{eventId}/seats/generate")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<List<SeatMapResponse.SeatInfo>>> generateSeats(
             @PathVariable UUID eventId,
             @Valid @RequestBody GenerateSeatsRequest request) {
@@ -98,5 +105,15 @@ public class EventController {
     public ResponseEntity<ApiResponse<SeatMapResponse>> getSeatMap(@PathVariable UUID eventId) {
         SeatMapResponse seatMap = eventService.getSeatMap(eventId);
         return ResponseEntity.ok(ApiResponse.ok(seatMap));
+    }
+
+    // ─── Helper ──────────────────────────────────────────
+
+    private UUID getCurrentUserId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getPrincipal() != null) {
+            return UUID.fromString(auth.getPrincipal().toString());
+        }
+        throw new RuntimeException("User not authenticated");
     }
 }

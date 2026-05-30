@@ -5,8 +5,6 @@ function getHeaders(): HeadersInit {
   if (typeof window !== 'undefined') {
     const token = localStorage.getItem('token');
     if (token) headers['Authorization'] = `Bearer ${token}`;
-    const uid = localStorage.getItem('userId');
-    if (uid) headers['X-User-Id'] = uid;
   }
   return headers;
 }
