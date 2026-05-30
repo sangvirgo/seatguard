@@ -45,6 +45,12 @@ spring:
           predicates:
             - Path=/api/bookings/**
 
+        # Payment Service (booking-service)
+        - id: payment-service
+          uri: http://booking-service:8083
+          predicates:
+            - Path=/api/payments/**
+
         # Ticket Service
         - id: ticket-service
           uri: http://ticket-service:8084

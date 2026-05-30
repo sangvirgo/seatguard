@@ -152,6 +152,24 @@ export async function getBooking(bookingId: string) {
   return apiFetch(`/api/bookings/${bookingId}`);
 }
 
+// ─── Payments ─────────────────────────────────────────
+export async function createPayment(bookingId: string, method: string) {
+  return apiFetch(`/api/payments?bookingId=${bookingId}`, {
+    method: 'POST',
+    body: JSON.stringify({ method }),
+  });
+}
+
+export async function confirmMockPayment(paymentId: string) {
+  return apiFetch(`/api/payments/${paymentId}/mock/success`, {
+    method: 'POST',
+  });
+}
+
+export async function getPayment(paymentId: string) {
+  return apiFetch(`/api/payments/${paymentId}`);
+}
+
 // ─── Tickets ──────────────────────────────────────────
 export async function getMyTickets() {
   const res = await apiFetch('/api/tickets/me');

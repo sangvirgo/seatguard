@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { getEvent, getSeatMap, holdSeat, payBooking, isLoggedIn } from '../../../lib/api';
+import { getEvent, getSeatMap, holdSeat, createPayment, confirmMockPayment, isLoggedIn } from '../../../lib/api';
 import SeatMap from '../../../components/SeatMap';
 import StatusBadge from '../../../components/StatusBadge';
 import LoadingState from '../../../components/LoadingState';
@@ -22,6 +22,9 @@ export default function EventDetailPage() {
   const [bookingId, setBookingId] = useState<string | null>(null);
   const [confirmed, setConfirmed] = useState(false);
   const [paying, setPaying] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState('MOCK');
+  const [paymentId, setPaymentId] = useState<string | null>(null);
+  const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (eventId) {
@@ -51,7 +54,7 @@ export default function EventDetailPage() {
     if (res.ok) {
       const bid = res.data.data?.id || res.data.id;
       setBookingId(bid);
-      setMsg(`Seat held! Booking: ${bid.slice(0, 8)}...`);
+      setMsg('Seat held! Booking: ' + bid.slice(0, 8) + '...');
       setMsgType('success');
       setSelected(null);
       setSelectedSeatInfo(null);
@@ -72,13 +75,35 @@ export default function EventDetailPage() {
   async function handlePay() {
     if (!bookingId) return;
     setPaying(true); setMsg('');
-    const res = await payBooking(bookingId);
+    const res = await createPayment(bookingId, paymentMethod);
+    if (res.ok) {
+      const data = res.data.data || res.data;
+      setPaymentId(data.id);
+      if (data.paymentUrl) {
+        setPaymentUrl(data.paymentUrl);
+        setMsg('Redirecting to payment provider...');
+        setMsgType('success');
+      } else if (paymentMethod === 'MOCK') {
+        setMsg('Mock payment created. Click to simulate success.');
+        setMsgType('success');
+      }
+    } else {
+      setMsg('Payment failed: ' + (res.data?.message || 'Unknown error'));
+      setMsgType('error');
+    }
+    setPaying(false);
+  }
+
+  async function handleMockConfirm() {
+    if (!paymentId) return;
+    setPaying(true); setMsg('');
+    const res = await confirmMockPayment(paymentId);
     if (res.ok) {
       setConfirmed(true);
       setMsg('Payment confirmed! Your ticket is being issued...');
       setMsgType('success');
     } else {
-      setMsg('Payment failed. Please try again.');
+      setMsg('Confirmation failed: ' + (res.data?.message || 'Unknown error'));
       setMsgType('error');
     }
     setPaying(false);
@@ -123,7 +148,7 @@ export default function EventDetailPage() {
       <div className="container-main">
         {/* Messages */}
         {msg && (
-          <div className={`mb-6 ${msgType === 'error' ? 'toast-error' : 'toast-success'}`}>
+          <div className={'mb-6 ' + (msgType === 'error' ? 'toast-error' : 'toast-success')}>
             {msg}
             {confirmed && (
               <button onClick={() => router.push('/tickets')} className="ml-4 text-blue-400 underline">
@@ -150,7 +175,7 @@ export default function EventDetailPage() {
           </div>
         ) : (
           <div className="grid gap-8 lg:grid-cols-5">
-            {/* Seat Map - 3 columns (60%) */}
+            {/* Seat Map */}
             <div className="lg:col-span-3">
               {!seatMap ? (
                 <LoadingState message="Loading seat map..." />
@@ -163,7 +188,7 @@ export default function EventDetailPage() {
               )}
             </div>
 
-            {/* Sticky Booking Summary - 2 columns (40%) */}
+            {/* Booking Summary */}
             <div className="lg:col-span-2">
               <div className="lg:sticky lg:top-24 glass-card p-6">
                 <h3 className="text-lg font-semibold text-white mb-4">Booking Summary</h3>
@@ -198,13 +223,57 @@ export default function EventDetailPage() {
                     <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 p-3 text-sm text-emerald-400">
                       ✅ Seat held! Complete payment to confirm.
                     </div>
-                    <button
-                      onClick={handlePay}
-                      disabled={paying}
-                      className="btn-glow w-full !bg-gradient-to-r !from-emerald-600 !to-emerald-500 disabled:opacity-50"
-                    >
-                      {paying ? 'Processing...' : '💳 Pay Now'}
-                    </button>
+
+                    {!paymentId ? (
+                      <>
+                        {/* Payment Method Selector */}
+                        <div className="space-y-2">
+                          <p className="text-xs text-gray-400 font-medium">Payment Method</p>
+                          {['MOCK', 'MOMO', 'VNPAY'].map(m => (
+                            <button
+                              key={m}
+                              onClick={() => setPaymentMethod(m)}
+                              className={'w-full rounded-lg border p-3 text-left text-sm transition-all ' +
+                                (paymentMethod === m
+                                  ? 'border-blue-500 bg-blue-500/10 text-white'
+                                  : 'border-white/10 bg-white/5 text-gray-400 hover:bg-white/10')}
+                            >
+                              {m === 'MOCK' && '🧪 Mock Payment (Demo)'}
+                              {m === 'MOMO' && '📱 MoMo E-Wallet'}
+                              {m === 'VNPAY' && '💳 VNPay Gateway'}
+                            </button>
+                          ))}
+                        </div>
+                        <button
+                          onClick={handlePay}
+                          disabled={paying}
+                          className="btn-glow w-full !bg-gradient-to-r !from-emerald-600 !to-emerald-500 disabled:opacity-50"
+                        >
+                          {paying ? 'Processing...' : '💳 Pay Now'}
+                        </button>
+                      </>
+                    ) : paymentUrl ? (
+                      <a
+                        href={paymentUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn-glow w-full !bg-gradient-to-r !from-blue-600 !to-violet-600 text-center no-underline block"
+                      >
+                        🔗 Go to Payment Provider
+                      </a>
+                    ) : paymentMethod === 'MOCK' ? (
+                      <button
+                        onClick={handleMockConfirm}
+                        disabled={paying}
+                        className="btn-glow w-full !bg-gradient-to-r !from-emerald-600 !to-emerald-500 disabled:opacity-50"
+                      >
+                        {paying ? 'Confirming...' : '🧪 Simulate Payment Success'}
+                      </button>
+                    ) : (
+                      <div className="rounded-lg bg-yellow-500/10 border border-yellow-500/20 p-3 text-sm text-yellow-400">
+                        {paymentMethod} sandbox is not configured in this demo environment.
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <button
