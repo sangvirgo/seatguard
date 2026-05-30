@@ -40,6 +40,8 @@ export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
   private kafka: Kafka;
   private consumer: Consumer;
   private connected = false;
+  private maxRetries = 10;
+  private retryDelayMs = 5000;
 
   constructor(private readonly notificationService: NotificationService) {
     const config = appConfig();
@@ -51,53 +53,78 @@ export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
   }
 
   async onModuleInit() {
-    try {
-      await this.consumer.connect();
-      this.connected = true;
-      this.logger.log('Kafka consumer connected');
+    // Run consumer setup in background so the app starts even if Kafka is slow
+    this.connectWithRetry().catch((err) => {
+      this.logger.error('Kafka consumer failed after all retries', err);
+    });
+  }
 
-      await this.consumer.subscribe({ topics: ['booking-events', 'ticket-events'], fromBeginning: false });
+  private async connectWithRetry(): Promise<void> {
+    for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
+      try {
+        await this.consumer.connect();
+        this.connected = true;
+        this.logger.log('Kafka consumer connected');
 
-      await this.consumer.run({
-        eachMessage: async ({ topic, message }) => {
-          try {
-            const raw = message.value?.toString();
-            if (!raw) return;
+        await this.consumer.subscribe({ topics: ['booking-events', 'ticket-events'], fromBeginning: false });
 
-            const event = JSON.parse(raw);
-            const { eventType, userId, ...rest } = event;
+        await this.consumer.run({
+          eachMessage: async ({ topic, message }) => {
+            try {
+              const raw = message.value?.toString();
+              if (!raw) return;
 
-            const config = EVENT_NOTIFICATIONS[eventType];
-            if (!config) {
-              this.logger.warn(`Unknown event type: ${eventType} (topic: ${topic})`);
-              return;
+              const event = JSON.parse(raw);
+              const { eventType, userId, ...rest } = event;
+
+              const config = EVENT_NOTIFICATIONS[eventType];
+              if (!config) {
+                this.logger.warn(`Unknown event type: ${eventType} (topic: ${topic})`);
+                return;
+              }
+
+              await this.notificationService.createNotification(
+                userId,
+                eventType,
+                config.title,
+                config.messageFn(rest),
+                rest,
+              );
+
+              this.logger.log(`Notification created for user ${userId}: ${eventType}`);
+            } catch (err) {
+              this.logger.error('Error processing Kafka message', err);
             }
+          },
+        });
 
-            await this.notificationService.createNotification(
-              userId,
-              eventType,
-              config.title,
-              config.messageFn(rest),
-              rest,
-            );
+        this.logger.log('Kafka consumer subscribed and running');
+        return; // Success — exit retry loop
+      } catch (err: any) {
+        const isLastAttempt = attempt === this.maxRetries;
+        const errMsg = err?.message || String(err);
 
-            this.logger.log(`Notification created for user ${userId}: ${eventType}`);
-          } catch (err) {
-            this.logger.error('Error processing Kafka message', err);
-          }
-        },
-      });
+        if (isLastAttempt) {
+          this.logger.error(`Kafka consumer failed after ${this.maxRetries} attempts: ${errMsg}`);
+          return;
+        }
 
-      this.logger.log('Kafka consumer subscribed and running');
-    } catch (err) {
-      this.logger.error('Failed to start Kafka consumer', err);
+        this.logger.warn(
+          `Kafka consumer attempt ${attempt}/${this.maxRetries} failed: ${errMsg}. Retrying in ${this.retryDelayMs / 1000}s...`,
+        );
+        await new Promise((resolve) => setTimeout(resolve, this.retryDelayMs));
+      }
     }
   }
 
   async onModuleDestroy() {
     if (this.connected) {
-      await this.consumer.disconnect();
-      this.logger.log('Kafka consumer disconnected');
+      try {
+        await this.consumer.disconnect();
+        this.logger.log('Kafka consumer disconnected');
+      } catch (err) {
+        this.logger.warn('Error disconnecting Kafka consumer', err);
+      }
     }
   }
 }
