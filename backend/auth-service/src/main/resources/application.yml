@@ -13,6 +13,11 @@ spring:
       ddl-auto: update
     show-sql: false
 
+jwt:
+  secret: ${JWT_SECRET:aVeryLongSecretKeyThatIsAtLeast32CharactersLongForHS256!}
+  expiration: ${JWT_EXPIRATION:900000}       # 15 minutes in ms
+  refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}  # 7 days in ms
+
 management:
   endpoints:
     web:
