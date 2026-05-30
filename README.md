@@ -71,18 +71,47 @@ SeatGuard is a production-grade event/concert ticket booking platform designed t
 
 ## Quick Start
 
+### Option 1: Docker Full Stack (Recommended)
+
+```bash
+# Build and start everything (10 services)
+bash scripts/docker-full-up.sh
+
+# Open frontend
+open http://localhost:3001
+
+# Run API smoke test
+bash tests/smoke/full-flow.sh
+
+# Run k6 double-booking test
+bash scripts/run-k6-double-booking.sh
+
+# Stop everything
+bash scripts/docker-full-down.sh
+```
+
+### Option 2: Local Development
+
 ```bash
 # Start infrastructure
-cd infra && docker-compose up -d
+docker compose -f infra/docker-compose.yml up -d
 
 # Start backend services (each in separate terminal)
-cd backend/auth-service && ./mvnw spring-boot:run
-cd backend/event-service && ./mvnw spring-boot:run
-cd backend/booking-service && ./mvnw spring-boot:run
-cd backend/ticket-service && ./mvnw spring-boot:run
+cd backend/api-gateway && mvn spring-boot:run
+cd backend/auth-service && mvn spring-boot:run
+cd backend/event-service && mvn spring-boot:run
+cd backend/booking-service && mvn spring-boot:run
+cd backend/ticket-service && mvn spring-boot:run
 
 # Start notification service
-cd notification-service && npm run start:dev
+cd notification-service && npm install && npm run start
+
+# Start frontend
+cd frontend && npm install && npm run dev
+
+# Run API smoke test
+bash tests/smoke/full-flow.sh
+```
 
 # Start frontend
 cd frontend && npm run dev
@@ -98,6 +127,33 @@ SeatGuard uses a **dual-layer protection** strategy:
 4. **Transaction Boundary** — Atomic DB operations
 
 Load test: `k6 run tests/k6/double-booking.js` — 1000 VUs, 1 seat, expect exactly 1 success.
+
+## Frontend Demo
+
+A clean Next.js demo UI is available at `http://localhost:3001`:
+
+| Page | Path | Description |
+|------|------|-------------|
+| Home | `/` | Project overview + proof cards |
+| Events | `/events` | Browse events, create demo event |
+| Event Detail | `/events/[id]` | Seat map, select & hold seat |
+| Tickets | `/tickets` | Pay, view ticket, check-in |
+| Login | `/login` | Register/Login demo user |
+| Proof | `/proof` | Integration test evidence |
+
+### Run Frontend
+```bash
+cd frontend && npm install && npm run dev
+# Open http://localhost:3001
+```
+
+### Demo Flow
+1. Go to `/login` → Register a user
+2. Go to `/events` → Create demo event
+3. Click event → Select a seat → Hold seat
+4. Go to `/tickets` → Pay → Ticket issued via Kafka
+5. Check in → Duplicate check-in rejected
+6. Go to `/proof` → View all evidence
 
 ## Documentation
 
