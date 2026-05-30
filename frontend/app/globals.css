@@ -15,14 +15,15 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Gradient background */
+/* ─── Background ─────────────────────────────────────── */
 .bg-gradient-hero {
   background: radial-gradient(ellipse at 20% 50%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
               radial-gradient(ellipse at 80% 20%, rgba(139, 92, 246, 0.06) 0%, transparent 50%),
+              radial-gradient(ellipse at 50% 80%, rgba(236, 72, 153, 0.04) 0%, transparent 50%),
               #050510;
 }
 
-/* Glass card */
+/* ─── Glass Card ─────────────────────────────────────── */
 .glass-card {
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.06);
@@ -36,7 +37,7 @@ body {
   transform: translateY(-2px);
 }
 
-/* Gradient text */
+/* ─── Gradient Text ──────────────────────────────────── */
 .gradient-text {
   background: linear-gradient(135deg, #60a5fa, #a78bfa, #f472b6);
   -webkit-background-clip: text;
@@ -44,7 +45,7 @@ body {
   background-clip: text;
 }
 
-/* Metric card */
+/* ─── Metric Card ────────────────────────────────────── */
 .metric-card {
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(255, 255, 255, 0.05);
@@ -58,7 +59,7 @@ body {
   box-shadow: 0 0 20px rgba(99, 102, 241, 0.1);
 }
 
-/* Seat map */
+/* ─── Seat Map ───────────────────────────────────────── */
 .seat {
   width: 32px;
   height: 32px;
@@ -68,22 +69,37 @@ body {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 .seat.AVAILABLE {
   background: linear-gradient(135deg, #059669, #10b981);
   color: white;
   box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
 }
-.seat.AVAILABLE:hover { transform: scale(1.2); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.5); }
+.seat.AVAILABLE:hover {
+  transform: scale(1.2);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.5);
+}
 .seat.AVAILABLE.selected {
   outline: 3px solid #60a5fa;
   outline-offset: 2px;
   box-shadow: 0 0 16px rgba(96, 165, 250, 0.5);
+  background: linear-gradient(135deg, #3b82f6, #60a5fa);
 }
-.seat.HELD { background: rgba(234, 179, 8, 0.4); color: #fbbf24; cursor: not-allowed; }
-.seat.SOLD { background: rgba(107, 114, 128, 0.2); color: #4b5563; cursor: not-allowed; }
+.seat.HELD {
+  background: rgba(234, 179, 8, 0.4);
+  color: #fbbf24;
+  cursor: not-allowed;
+}
+.seat.SOLD {
+  background: rgba(107, 114, 128, 0.2);
+  color: #4b5563;
+  cursor: not-allowed;
+}
 
-/* Ticket */
+/* ─── Ticket Card ────────────────────────────────────── */
 .ticket-card {
   background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.05));
   border: 2px dashed rgba(99, 102, 241, 0.3);
@@ -92,6 +108,11 @@ body {
   text-align: center;
   position: relative;
   overflow: hidden;
+  transition: all 0.3s ease;
+}
+.ticket-card:hover {
+  border-color: rgba(99, 102, 241, 0.5);
+  box-shadow: 0 8px 30px rgba(99, 102, 241, 0.15);
 }
 .ticket-card::before {
   content: '';
@@ -108,15 +129,16 @@ body {
   50% { opacity: 1; }
 }
 
-/* Navbar */
+/* ─── Navbar ─────────────────────────────────────────── */
 .navbar {
   background: rgba(5, 5, 16, 0.8);
   backdrop-filter: blur(20px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* Button glow */
+/* ─── Button Glow ────────────────────────────────────── */
 .btn-glow {
+  display: inline-block;
   background: linear-gradient(135deg, #3b82f6, #8b5cf6);
   color: white;
   border: none;
@@ -126,14 +148,22 @@ body {
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+  text-decoration: none;
 }
 .btn-glow:hover {
   box-shadow: 0 6px 25px rgba(59, 130, 246, 0.5);
   transform: translateY(-1px);
 }
-.btn-glow:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.btn-glow:active {
+  transform: translateY(0);
+}
+.btn-glow:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
 
-/* Badge */
+/* ─── Badge ──────────────────────────────────────────── */
 .badge-status {
   display: inline-flex;
   align-items: center;
@@ -147,9 +177,15 @@ body {
 .badge-status.DRAFT { background: rgba(139, 92, 246, 0.15); color: #a78bfa; }
 .badge-status.VALID { background: rgba(16, 185, 129, 0.15); color: #34d399; }
 .badge-status.USED { background: rgba(234, 179, 8, 0.15); color: #fbbf24; }
+.badge-status.CANCELLED { background: rgba(239, 68, 68, 0.15); color: #f87171; }
+.badge-status.PENDING_PAYMENT { background: rgba(234, 179, 8, 0.15); color: #fbbf24; }
+.badge-status.CONFIRMED { background: rgba(16, 185, 129, 0.15); color: #34d399; }
 
-/* Form inputs */
-input[type="text"], input[type="email"], input[type="password"] {
+/* ─── Form Inputs ────────────────────────────────────── */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+select {
   width: 100%;
   padding: 12px 16px;
   background: rgba(255, 255, 255, 0.03);
@@ -159,17 +195,42 @@ input[type="text"], input[type="email"], input[type="password"] {
   font-size: 0.9rem;
   transition: all 0.2s ease;
 }
-input:focus {
+input:focus,
+select:focus {
   outline: none;
   border-color: rgba(99, 102, 241, 0.5);
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
+select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
+  padding-right: 2.5rem;
+}
+select option {
+  background: #1a1a2e;
+  color: #e2e8f0;
+}
 
-/* Toast */
-.toast-success { background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); color: #34d399; border-radius: 12px; padding: 14px 20px; }
-.toast-error { background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #f87171; border-radius: 12px; padding: 14px 20px; }
+/* ─── Toast ──────────────────────────────────────────── */
+.toast-success {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #34d399;
+  border-radius: 12px;
+  padding: 14px 20px;
+}
+.toast-error {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #f87171;
+  border-radius: 12px;
+  padding: 14px 20px;
+}
 
-/* Proof flow step */
+/* ─── Flow Step ──────────────────────────────────────── */
 .flow-step {
   display: flex;
   align-items: center;
@@ -189,4 +250,33 @@ input:focus {
   font-weight: 700;
   font-size: 0.85rem;
   flex-shrink: 0;
+  color: white;
+}
+
+/* ─── Scrollbar ──────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ─── Responsive ─────────────────────────────────────── */
+@media (max-width: 640px) {
+  .seat {
+    width: 26px;
+    height: 26px;
+    font-size: 0.55rem;
+  }
+  .ticket-card {
+    padding: 24px;
+  }
 }

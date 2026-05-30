@@ -1,6 +1,4 @@
-// SeatGuard API Client — All requests go through API Gateway
-
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
+// SeatGuard API Client — All requests go through API Gateway via Next.js rewrites
 
 function getHeaders(): HeadersInit {
   const headers: HeadersInit = { 'Content-Type': 'application/json' };
@@ -14,10 +12,14 @@ function getHeaders(): HeadersInit {
 }
 
 async function apiFetch(path: string, options: RequestInit = {}) {
-  const url = `${API_BASE}${path}`;
-  const res = await fetch(url, { ...options, headers: { ...getHeaders(), ...options.headers } });
-  const data = await res.json().catch(() => ({}));
-  return { status: res.status, data, ok: res.ok };
+  const url = typeof window !== 'undefined' ? path : `${process.env.API_GATEWAY_URL || 'http://localhost:8080'}${path}`;
+  try {
+    const res = await fetch(url, { ...options, headers: { ...getHeaders(), ...options.headers } });
+    const data = await res.json().catch(() => ({}));
+    return { status: res.status, data, ok: res.ok };
+  } catch (e: any) {
+    return { status: 0, data: { message: 'Network error. Please check your connection and try again.' }, ok: false };
+  }
 }
 
 // ─── Auth ──────────────────────────────────────────────

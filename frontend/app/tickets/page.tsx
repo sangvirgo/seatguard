@@ -2,13 +2,21 @@
 
 import { useEffect, useState } from 'react';
 import { getMyTickets, checkInTicket, isLoggedIn, payBooking } from '../../lib/api';
+import TicketCard from '../../components/TicketCard';
+import LoadingState from '../../components/LoadingState';
+import EmptyState from '../../components/EmptyState';
+import { useRouter } from 'next/navigation';
 
 export default function TicketsPage() {
+  const router = useRouter();
   const [tickets, setTickets] = useState<any[]>([]);
   const [msg, setMsg] = useState('');
   const [msgType, setMsgType] = useState<'success' | 'error'>('success');
   const [loading, setLoading] = useState(true);
   const [bookingId, setBookingId] = useState<string | null>(null);
+  const [paying, setPaying] = useState(false);
+  const [lookupType, setLookupType] = useState<'bookingId' | 'ticketId' | 'checkInCode'>('bookingId');
+  const [lookupValue, setLookupValue] = useState('');
 
   useEffect(() => {
     if (typeof window !== 'undefined') setBookingId(localStorage.getItem('lastBookingId'));
@@ -23,6 +31,7 @@ export default function TicketsPage() {
 
   async function handlePay() {
     if (!bookingId) return;
+    setPaying(true);
     setMsg('');
     const res = await payBooking(bookingId);
     if (res.ok) {
@@ -32,69 +41,131 @@ export default function TicketsPage() {
       setBookingId(null);
       setTimeout(loadTickets, 3000);
       setTimeout(loadTickets, 6000);
-    } else { setMsg('Payment failed'); setMsgType('error'); }
+    } else {
+      setMsg('Payment failed. Please try again.');
+      setMsgType('error');
+    }
+    setPaying(false);
   }
 
   async function handleCheckIn(id: string) {
     setMsg('');
     const res = await checkInTicket(id);
-    if (res.ok) { setMsg('Checked in!'); setMsgType('success'); loadTickets(); }
-    else { setMsg('Check-in failed: ' + JSON.stringify(res.data)); setMsgType('error'); }
+    if (res.ok) {
+      setMsg('Checked in successfully!');
+      setMsgType('success');
+      loadTickets();
+    } else {
+      setMsg('Check-in failed: ' + JSON.stringify(res.data));
+      setMsgType('error');
+    }
+  }
+
+  function handleLookup() {
+    if (!lookupValue.trim()) return;
+    // Navigate based on lookup type
+    if (lookupType === 'bookingId') {
+      router.push(`/tickets?bookingId=${lookupValue}`);
+    } else if (lookupType === 'ticketId') {
+      router.push(`/tickets?ticketId=${lookupValue}`);
+    } else {
+      router.push(`/tickets?checkInCode=${lookupValue}`);
+    }
   }
 
   return (
     <div>
-      <div className="mb-10 flex items-end justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-white">My Tickets</h1>
-          <p className="mt-1 text-sm text-gray-400">View and manage your event tickets</p>
+      {/* Hero */}
+      <section className="relative mb-10 pb-6 pt-4 overflow-hidden">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[200px] bg-violet-600/10 rounded-full blur-[100px] pointer-events-none"></div>
+        <div className="relative z-10 flex items-end justify-between flex-wrap gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-white">My Tickets</h1>
+            <p className="mt-1 text-sm text-gray-400">View and manage your event tickets</p>
+          </div>
+          <button
+            onClick={loadTickets}
+            className="rounded-lg border border-white/10 px-4 py-2 text-sm text-gray-400 hover:bg-white/5 transition-all"
+          >
+            🔄 Refresh
+          </button>
         </div>
-        <button onClick={loadTickets} className="rounded-lg border border-white/10 px-4 py-2 text-sm text-gray-400 hover:bg-white/5 transition-all">
-          Refresh
-        </button>
+      </section>
+
+      {/* Messages */}
+      {msg && (
+        <div className={`mb-6 ${msgType === 'error' ? 'toast-error' : 'toast-success'}`}>
+          {msg}
+        </div>
+      )}
+
+      {/* Ticket Lookup */}
+      <div className="glass-card p-6 mb-8">
+        <h3 className="text-sm font-semibold text-white mb-3">🔍 Look Up Ticket</h3>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <select
+            value={lookupType}
+            onChange={e => setLookupType(e.target.value as any)}
+            className="rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm text-gray-300"
+          >
+            <option value="bookingId">Booking ID</option>
+            <option value="ticketId">Ticket ID</option>
+            <option value="checkInCode">Check-in Code</option>
+          </select>
+          <input
+            type="text"
+            placeholder={`Enter ${lookupType}...`}
+            value={lookupValue}
+            onChange={e => setLookupValue(e.target.value)}
+            className="flex-1"
+          />
+          <button onClick={handleLookup} className="btn-glow !py-2 text-sm">
+            Search
+          </button>
+        </div>
       </div>
 
-      {msg && <div className={`mb-6 ${msgType === 'error' ? 'toast-error' : 'toast-success'}`}>{msg}</div>}
-
+      {/* Pending Payment */}
       {bookingId && (
-        <div className="glass-card mb-6 border-amber-500/20 p-6">
+        <div className="glass-card mb-8 border-amber-500/20 p-6">
           <h3 className="mb-2 font-semibold text-amber-300">⏳ Pending Payment</h3>
-          <p className="mb-4 text-sm text-gray-400">Booking: <code className="rounded bg-white/5 px-2 py-0.5 text-xs">{bookingId}</code></p>
-          <button onClick={handlePay} className="btn-glow !bg-gradient-to-r !from-emerald-600 !to-emerald-500">
-            💳 Pay Now
+          <p className="mb-4 text-sm text-gray-400">
+            Booking: <code className="rounded bg-white/5 px-2 py-0.5 text-xs">{bookingId}</code>
+          </p>
+          <button
+            onClick={handlePay}
+            disabled={paying}
+            className="btn-glow !bg-gradient-to-r !from-emerald-600 !to-emerald-500 disabled:opacity-50"
+          >
+            {paying ? 'Processing...' : '💳 Pay Now'}
           </button>
         </div>
       )}
 
+      {/* Tickets */}
       {loading ? (
-        <div className="py-20 text-center text-gray-500">
-          <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-white/10 border-t-blue-500"></div>
-          Loading...
-        </div>
+        <LoadingState message="Loading tickets..." />
       ) : tickets.length === 0 ? (
-        <div className="glass-card py-20 text-center">
-          <div className="mb-4 text-5xl">🎫</div>
-          <p className="mb-2 text-lg font-medium text-white">No tickets yet</p>
-          <p className="mb-6 text-gray-400">Browse events, hold a seat, and pay to get your ticket</p>
-          <a href="/events" className="btn-glow no-underline">Browse Events →</a>
-        </div>
+        <EmptyState
+          icon="🎫"
+          title="No tickets yet"
+          description="Browse events, hold a seat, and pay to get your ticket"
+          actionLabel="Browse Events →"
+          actionHref="/events"
+        />
       ) : (
-        <div className="space-y-6">
+        <div className="grid gap-6 sm:grid-cols-2">
           {tickets.map((t: any) => (
-            <div key={t.id} className="ticket-card">
-              <div className="relative z-10">
-                <h3 className="text-lg font-semibold text-white">🎫 Ticket</h3>
-                <div className="my-4 font-mono text-3xl font-bold tracking-[0.3em] text-blue-400">{t.checkInCode || 'N/A'}</div>
-                <p className="text-sm text-gray-400">{t.seatInfo || `Seat ${t.seatId?.slice(0, 8)}`}</p>
-                <div className="my-4">
-                  <span className={`badge-status ${t.status}`}>{t.status}</span>
-                </div>
-                {t.status === 'VALID' && (
-                  <button onClick={() => handleCheckIn(t.id)} className="btn-glow">✅ Check In</button>
-                )}
-                {t.status === 'USED' && <p className="text-amber-400">✅ Already checked in</p>}
-              </div>
-            </div>
+            <TicketCard
+              key={t.id}
+              id={t.id}
+              status={t.status}
+              checkInCode={t.checkInCode}
+              seatInfo={t.seatInfo}
+              seatId={t.seatId}
+              eventName={t.eventName}
+              onCheckIn={handleCheckIn}
+            />
           ))}
         </div>
       )}
