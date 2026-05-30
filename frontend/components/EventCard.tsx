@@ -49,12 +49,12 @@ export default function EventCard({ id, name, venue, category, status, startTime
           )}
         </div>
         <div className="p-5">
-          <h3 className="mb-2 text-lg font-semibold text-white group-hover:text-blue-400 transition-colors">
+          <h3 className="mb-2 text-lg font-semibold text-white group-hover:text-blue-400 transition-colors line-clamp-2">
             {name}
           </h3>
           <p className="text-sm text-gray-400 flex items-center gap-1.5">
             <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
-            {venue}
+            <span className="truncate">{venue}</span>
           </p>
           {dateStr && (
             <p className="mt-2 text-xs text-gray-500 flex items-center gap-1.5">

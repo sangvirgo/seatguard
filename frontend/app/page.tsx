@@ -129,15 +129,15 @@ export default function HomePage() {
           {steps.map((step, i) => {
             const Icon = step.icon;
             return (
-              <div key={i} className="glass-card p-6 text-center relative">
+              <div key={i} className="glass-card overflow-hidden p-6 text-center relative">
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 h-7 w-7 rounded-full bg-gradient-to-br from-blue-600 to-violet-600 flex items-center justify-center text-xs font-bold text-white shadow-lg shadow-blue-500/30">
                   {i + 1}
                 </div>
-                <div className="mt-4 mb-3 flex justify-center">
+                <div className="mt-5 mb-4 flex justify-center">
                   <Icon className="w-8 h-8 text-blue-400" />
                 </div>
-                <h3 className="mb-1 text-sm font-semibold text-white">{step.title}</h3>
-                <p className="text-xs text-gray-400">{step.desc}</p>
+                <h3 className="mb-2 text-sm font-semibold text-white leading-snug">{step.title}</h3>
+                <p className="text-xs text-gray-400 line-clamp-3 leading-relaxed">{step.desc}</p>
               </div>
             );
           })}
@@ -150,17 +150,17 @@ export default function HomePage() {
           <h2 className="text-2xl font-bold text-white">Why Choose SeatGuard</h2>
           <p className="mt-2 text-sm text-gray-400">Built for reliability, designed for you</p>
         </div>
-        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2">
+        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           {features.map((f, i) => {
             const Icon = f.icon;
             return (
-              <div key={i} className="glass-card p-6 flex gap-4">
-                <div className="flex-shrink-0">
+              <div key={i} className="glass-card overflow-hidden p-6 flex gap-4">
+                <div className="flex-shrink-0 w-12 h-12 flex items-center justify-center">
                   <Icon className="w-8 h-8 text-violet-400" />
                 </div>
-                <div>
-                  <h3 className="mb-1 font-semibold text-white">{f.title}</h3>
-                  <p className="text-sm text-gray-400">{f.desc}</p>
+                <div className="min-w-0">
+                  <h3 className="mb-2 font-semibold text-white leading-snug">{f.title}</h3>
+                  <p className="text-sm text-gray-400 line-clamp-3 leading-relaxed">{f.desc}</p>
                 </div>
               </div>
             );
