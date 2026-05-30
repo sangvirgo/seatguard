@@ -45,8 +45,8 @@ export default function LoginPage() {
 
   if (user) {
     return (
-      <div className="py-16">
-        <div className="mx-auto max-w-md relative overflow-hidden">
+      <div className="flex min-h-[70vh] items-center justify-center px-4 py-16">
+        <div className="w-full max-w-md relative overflow-hidden">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[400px] h-[200px] bg-emerald-600/10 rounded-full blur-[80px] pointer-events-none"></div>
           <div className="relative glass-card p-8 text-center">
             <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-violet-600 text-3xl">
@@ -73,8 +73,8 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="py-16">
-      <div className="mx-auto max-w-md relative overflow-hidden">
+    <div className="flex min-h-[70vh] items-center justify-center px-4 py-16">
+      <div className="w-full max-w-md relative overflow-hidden">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[400px] h-[200px] bg-blue-600/10 rounded-full blur-[80px] pointer-events-none"></div>
         <div className="relative glass-card p-8">
           <div className="mb-6 text-center">
