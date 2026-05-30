@@ -1,0 +1,18 @@
+export default () => ({
+  database: {
+    host: process.env.DB_HOST || 'localhost',
+    port: parseInt(process.env.DB_PORT, 10) || 5432,
+    username: process.env.DB_USERNAME || 'postgres',
+    password: process.env.DB_PASSWORD || 'postgres',
+    database: process.env.DB_NAME || 'seatguard_notifications',
+  },
+  kafka: {
+    brokers: (process.env.KAFKA_BROKERS || 'localhost:9092').split(','),
+    groupId: process.env.KAFKA_GROUP_ID || 'notification-service',
+  },
+  websocket: {
+    cors: {
+      origin: process.env.WS_CORS_ORIGIN || '*',
+    },
+  },
+});
