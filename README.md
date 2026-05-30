@@ -99,6 +99,33 @@ SeatGuard uses a **dual-layer protection** strategy:
 
 Load test: `k6 run tests/k6/double-booking.js` — 1000 VUs, 1 seat, expect exactly 1 success.
 
+## Frontend Demo
+
+A clean Next.js demo UI is available at `http://localhost:3001`:
+
+| Page | Path | Description |
+|------|------|-------------|
+| Home | `/` | Project overview + proof cards |
+| Events | `/events` | Browse events, create demo event |
+| Event Detail | `/events/[id]` | Seat map, select & hold seat |
+| Tickets | `/tickets` | Pay, view ticket, check-in |
+| Login | `/login` | Register/Login demo user |
+| Proof | `/proof` | Integration test evidence |
+
+### Run Frontend
+```bash
+cd frontend && npm install && npm run dev
+# Open http://localhost:3001
+```
+
+### Demo Flow
+1. Go to `/login` → Register a user
+2. Go to `/events` → Create demo event
+3. Click event → Select a seat → Hold seat
+4. Go to `/tickets` → Pay → Ticket issued via Kafka
+5. Check in → Duplicate check-in rejected
+6. Go to `/proof` → View all evidence
+
 ## Documentation
 
 - [Architecture](docs/architecture.md)

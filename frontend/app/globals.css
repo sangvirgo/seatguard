@@ -1,0 +1,258 @@
+:root {
+  --bg: #0a0a0a;
+  --bg-card: #141414;
+  --bg-hover: #1a1a1a;
+  --text: #e5e5e5;
+  --text-muted: #888;
+  --accent: #3b82f6;
+  --accent-hover: #2563eb;
+  --success: #22c55e;
+  --error: #ef4444;
+  --warning: #f59e0b;
+  --border: #262626;
+  --radius: 12px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+}
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* ─── Navbar ─────────────────────────── */
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-card);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.navbar .logo {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.navbar .logo span { color: var(--accent); }
+.navbar nav { display: flex; gap: 20px; align-items: center; }
+.navbar nav a {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  transition: color 0.2s;
+}
+.navbar nav a:hover { color: var(--text); text-decoration: none; }
+.navbar .user-badge {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  background: var(--bg);
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+/* ─── Buttons ────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-primary { background: var(--accent); color: white; }
+.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
+.btn-success { background: var(--success); color: white; }
+.btn-error { background: var(--error); color: white; }
+.btn-outline {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+.btn-outline:hover { background: var(--bg-hover); }
+.btn-sm { padding: 6px 14px; font-size: 0.8rem; }
+
+/* ─── Cards ──────────────────────────── */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  transition: border-color 0.2s;
+}
+.card:hover { border-color: #333; }
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+/* ─── Proof Cards ────────────────────── */
+.proof-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+.proof-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  text-align: center;
+}
+.proof-card .value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+.proof-card .label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+.proof-card.success .value { color: var(--success); }
+.proof-card.error .value { color: var(--error); }
+
+/* ─── Seat Map ───────────────────────── */
+.seat-map {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.seat-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.seat-row .row-label {
+  width: 30px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+.seat {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  border: none;
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.seat.AVAILABLE { background: var(--success); color: white; }
+.seat.AVAILABLE:hover { transform: scale(1.15); }
+.seat.HELD { background: var(--warning); color: black; }
+.seat.SOLD { background: #333; color: #666; cursor: not-allowed; }
+.seat.selected { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* ─── Forms ──────────────────────────── */
+.form-group { margin-bottom: 16px; }
+.form-group label {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.form-group input, .form-group select {
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 0.9rem;
+}
+.form-group input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+/* ─── Messages ───────────────────────── */
+.msg {
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  margin-bottom: 16px;
+}
+.msg-success { background: #052e16; border: 1px solid #166534; color: #4ade80; }
+.msg-error { background: #2a0a0a; border: 1px solid #7f1d1d; color: #fca5a5; }
+.msg-info { background: #0a1628; border: 1px solid #1e3a5f; color: #93c5fd; }
+
+/* ─── Ticket Card ────────────────────── */
+.ticket {
+  background: var(--bg-card);
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 32px;
+  text-align: center;
+  position: relative;
+}
+.ticket .code {
+  font-family: 'Courier New', monospace;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--accent);
+  margin: 16px 0;
+}
+.ticket .status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.ticket .status-badge.VALID { background: #052e16; color: #4ade80; }
+.ticket .status-badge.USED { background: #2a1f00; color: #fbbf24; }
+
+/* ─── Misc ───────────────────────────── */
+.section-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+}
+.header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.badge.AVAILABLE { background: #052e16; color: #4ade80; }
+.badge.HELD { background: #2a1f00; color: #fbbf24; }
+.badge.SOLD { background: #1a1a1a; color: #666; }
+.badge.DRAFT { background: #1e1e2e; color: #a78bfa; }
+.badge.PUBLISHED { background: #052e16; color: #4ade80; }
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-muted);
+}
