@@ -1,106 +1,114 @@
-# 🎫 SeatGuard
+# SeatGuard
 
-**Real-time event/concert ticket booking platform with guaranteed double-booking prevention.**
+High-Concurrency Ticket Booking Platform
 
-SeatGuard is a distributed microservices system for event ticketing that combines Redis distributed locks, PostgreSQL constraints, and Kafka event streaming to ensure every seat is sold exactly once — even under extreme concurrent load.
+## Overview
 
-## 🏗️ Tech Stack
+SeatGuard is a production-grade event/concert ticket booking platform designed to handle high-concurrency scenarios. The system ensures **zero double-booking** through a combination of Redis distributed locks and PostgreSQL unique constraints.
+
+## Key Features
+
+- **Event & Seat Map Management** — Create events, define sections/seats, publish
+- **Real-Time Seat Holding** — Redis-based TTL locks for seat reservation
+- **Payment Flow** — Mock payment integration with confirmation/expiry
+- **QR Ticket Generation** — Unique QR codes per ticket for check-in
+- **Concurrent Safety** — Tested with 1000+ simultaneous booking attempts
+- **Push Notifications** — WebSocket + Kafka-based event notifications
+
+## Tech Stack
 
 | Layer | Technology |
-|---|---|
-| **Backend API** | Spring Boot 3.3 (Java 21) — booking, payment, seat-locking, auth |
-| **Notification Service** | Node.js 22 (Fastify) — Kafka consumer, WebSocket, push notifications |
-| **Database** | PostgreSQL 16 — persistent storage with unique constraints |
-| **Cache / Lock** | Redis 7 — distributed seat locks (SET NX EX), idempotency keys |
-| **Message Broker** | Apache Kafka 3.7 (KRaft mode) — async event streaming |
-| **Load Testing** | k6 — concurrent double-booking validation |
-| **Container** | Docker & Docker Compose |
+|-------|-----------|
+| Backend Services | Java 21 + Spring Boot 3.x |
+| Notification Service | Node.js + NestJS |
+| Frontend | React + Next.js 14 |
+| Database | PostgreSQL 16 |
+| Cache / Lock | Redis 7 |
+| Message Broker | Apache Kafka 3.7 (KRaft mode) |
+| API Gateway | Spring Cloud Gateway |
+| Load Testing | k6 |
+| Containerization | Docker Compose |
 
-## 🚀 Quick Start
+## Architecture
 
-### Prerequisites
+```
+┌─────────────┐     ┌──────────────┐     ┌─────────────────┐
+│   Frontend   │────▶│ API Gateway  │────▶│  Auth Service   │
+│  (Next.js)   │     │ (Spring Cloud)│     │  (Spring Boot)  │
+└─────────────┘     └──────┬───────┘     └─────────────────┘
+                           │
+            ┌──────────────┼──────────────┐
+            ▼              ▼              ▼
+     ┌─────────────┐ ┌──────────┐ ┌──────────────┐
+     │Event Service│ │ Booking  │ │Ticket Service│
+     │(Spring Boot)│ │ Service  │ │(Spring Boot) │
+     └─────────────┘ └──────────┘ └──────────────┘
+                           │
+                     ┌─────┴─────┐
+                     ▼           ▼
+                ┌────────┐  ┌─────────┐
+                │ Redis  │  │ Kafka   │
+                │ (Lock) │  │ (Event) │
+                └────────┘  └────┬────┘
+                                 ▼
+                        ┌─────────────────┐
+                        │ Notification Svc│
+                        │   (NestJS)      │
+                        └─────────────────┘
+```
 
-- Java 21+
-- Node.js 22+
-- Docker & Docker Compose
-- k6 (for load testing)
+## Services
 
-### 1. Start Infrastructure
+| Service | Port | Responsibility |
+|---------|------|---------------|
+| api-gateway | 8080 | Routing, rate limiting, auth filter |
+| auth-service | 8081 | Register, login, JWT, refresh tokens |
+| event-service | 8082 | Events, sections, seats, seat map |
+| booking-service | 8083 | Hold seat, payment, cancellation |
+| ticket-service | 8084 | Ticket issuance, QR, check-in |
+| notification-service | 3000 | WebSocket push, Kafka consumer |
+| frontend | 3001 | Next.js web app |
+
+## Quick Start
 
 ```bash
-cd infra
-docker compose up -d
+# Start infrastructure
+cd infra && docker-compose up -d
+
+# Start backend services (each in separate terminal)
+cd backend/auth-service && ./mvnw spring-boot:run
+cd backend/event-service && ./mvnw spring-boot:run
+cd backend/booking-service && ./mvnw spring-boot:run
+cd backend/ticket-service && ./mvnw spring-boot:run
+
+# Start notification service
+cd notification-service && npm run start:dev
+
+# Start frontend
+cd frontend && npm run dev
 ```
 
-This starts PostgreSQL, Redis, and Kafka in KRaft mode.
+## Double-Booking Protection
 
-### 2. Run Backend (Spring Boot)
+SeatGuard uses a **dual-layer protection** strategy:
 
-```bash
-cd backend
-./mvnw spring-boot:run
-```
+1. **Redis SET NX EX** — Distributed lock with TTL (e.g., 5 minutes)
+2. **PostgreSQL UNIQUE constraint** — Active booking per seat enforcement
+3. **Idempotency Key** — Prevents duplicate booking requests
+4. **Transaction Boundary** — Atomic DB operations
 
-### 3. Run Notification Service (Node.js)
+Load test: `k6 run tests/k6/double-booking.js` — 1000 VUs, 1 seat, expect exactly 1 success.
 
-```bash
-cd notification-service
-npm install
-npm run dev
-```
+## Documentation
 
-### 4. Run Double-Booking Test
-
-```bash
-k6 run tests/k6/double-booking.js
-```
-
-## 📁 Project Structure
-
-```
-seatguard/
-├── backend/                    # Spring Boot monolith (booking, payment, auth, events)
-│   ├── src/
-│   └── pom.xml
-├── notification-service/       # Node.js notification service
-│   ├── src/
-│   └── package.json
-├── frontend/                   # Frontend (future)
-├── docs/                       # Documentation
-│   ├── architecture.md
-│   ├── api-contract.md
-│   ├── database-design.md
-│   ├── event-flow.md
-│   ├── testing-strategy.md
-│   └── roadmap.md
-├── infra/                      # Infrastructure
-│   └── docker-compose.yml
-├── tests/                      # Load & integration tests
-│   └── k6/
-│       └── double-booking.js
-├── AGENTS.md                   # Agent workflow rules
-└── README.md
-```
-
-## 🔒 Double-Booking Protection Strategy
-
-SeatGuard uses a **three-layer defense** to prevent double-booking:
-
-1. **Redis Distributed Lock** — `SET seat:lock:{seatId} {bookingId} NX EX 300` — atomic lock with 5-minute TTL
-2. **PostgreSQL Unique Constraint** — `UNIQUE(seat_id, status)` on active bookings (PENDING_PAYMENT, CONFIRMED) — database-level guarantee
-3. **Idempotency Key** — Client-generated request ID prevents duplicate processing
-
-If any layer catches a conflict, the booking is rejected with `409 Conflict`.
-
-## 📖 Documentation
-
-- [Architecture Overview](docs/architecture.md)
+- [Architecture](docs/architecture.md)
 - [API Contract](docs/api-contract.md)
 - [Database Design](docs/database-design.md)
 - [Event Flow](docs/event-flow.md)
 - [Testing Strategy](docs/testing-strategy.md)
 - [Roadmap](docs/roadmap.md)
+- [Agent Workflow](AGENTS.md)
 
-## 📄 License
+## License
 
-MIT
+Private — All rights reserved.

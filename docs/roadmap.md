@@ -1,168 +1,155 @@
 # Roadmap
 
-## Project Phases
+## Phase 1: Project Planning & Setup ✅
+**Duration:** Week 1
+**Branch:** `feature/seatguard-initial-setup`
 
-### Phase 1: Project Setup ✅
-- [x] Directory structure
-- [x] Git initialization
-- [x] Project planning documentation
+- [x] Environment assessment
+- [x] Project structure creation
+- [x] Architecture documentation
+- [x] API contract definition
+- [x] Database design
+- [x] Event flow design
+- [x] Testing strategy
+- [x] Docker Compose skeleton
+- [x] Agent workflow rules (AGENTS.md)
+- [x] Git setup and initial commit
 
-### Phase 2: Core Infrastructure ✅
-- [x] Docker Compose (PostgreSQL, Redis, Kafka)
-- [x] Project scaffolding
+---
 
-### Phase 3: Core Backend (Current)
-**Goal:** Working booking flow with double-booking prevention.
+## Phase 2: Service Scaffolding
+**Duration:** Week 2
+**Branch:** `feature/seatguard-scaffold-services`
 
-- [ ] Spring Boot project setup with dependencies
-- [ ] Database schema and migrations (Flyway)
-- [ ] User authentication (register, login, JWT)
-- [ ] Event CRUD and seat map management
-- [ ] Seat hold with Redis distributed lock
-- [ ] Booking flow (hold → pay → confirm)
-- [ ] Booking expiration scheduler
-- [ ] Kafka event publishing
+- [ ] Spring Boot parent POM (multi-module)
+- [ ] Auth Service skeleton (controllers, services, repositories)
+- [ ] Event Service skeleton
+- [ ] Booking Service skeleton
+- [ ] Ticket Service skeleton
+- [ ] API Gateway (Spring Cloud Gateway) skeleton
+- [ ] NestJS Notification Service skeleton
+- [ ] Next.js Frontend skeleton
+- [ ] Shared DTOs / API models
+- [ ] Health check endpoints for all services
+
+---
+
+## Phase 3: Auth & User Management
+**Duration:** Week 3
+**Branch:** `feature/seatguard-auth`
+
+- [ ] User registration with password hashing (BCrypt)
+- [ ] Login with JWT access + refresh tokens
+- [ ] Token refresh mechanism
+- [ ] Role-based access control (USER, ADMIN, STAFF)
+- [ ] Auth middleware / gateway filter
+- [ ] Integration tests for auth flow
+
+---
+
+## Phase 4: Event & Seat Management
+**Duration:** Week 4
+**Branch:** `feature/seatguard-events`
+
+- [ ] Event CRUD (create, update, publish, cancel)
+- [ ] Section management
+- [ ] Auto-generate seats per section
+- [ ] Seat map query with real-time availability
+- [ ] Event search and filtering
+- [ ] Admin dashboard for event management
+
+---
+
+## Phase 5: Booking Engine (Core)
+**Duration:** Weeks 5-6
+**Branch:** `feature/seatguard-booking`
+
+- [ ] Redis distributed lock (SET NX EX)
+- [ ] Seat hold with TTL
 - [ ] PostgreSQL unique active booking constraint
-- [ ] Idempotency key support
-
-**Deliverable:** API that handles concurrent seat booking with zero double-bookings.
-
----
-
-### Phase 4: Notification Service
-**Goal:** Real-time notifications for booking events.
-
-- [ ] Node.js + Fastify project setup
-- [ ] Kafka consumer for booking/ticket events
-- [ ] WebSocket server for real-time push
-- [ ] Notification storage and read/unread tracking
-- [ ] REST API for notification history
-
-**Deliverable:** Users receive real-time notifications for booking confirmations, expirations, and check-ins.
+- [ ] Idempotency key implementation
+- [ ] Payment mock (simulate success/failure)
+- [ ] Booking expiry scheduled task
+- [ ] Kafka event publishing (all booking events)
+- [ ] **k6 double-booking test** — 1000 VUs, verify zero double-booking
+- [ ] Performance optimization (p95 < 200ms)
 
 ---
 
-### Phase 5: Ticket System
-**Goal:** QR-based ticketing and check-in flow.
+## Phase 6: Ticket & Check-in
+**Duration:** Week 7
+**Branch:** `feature/seatguard-tickets`
 
-- [ ] Ticket generation on booking confirmation
-- [ ] QR code generation with HMAC signature
-- [ ] Ticket list and detail endpoints
-- [ ] Staff check-in endpoint
-- [ ] QR code scanning/validation
-
-**Deliverable:** Complete ticket lifecycle from issuance to venue check-in.
-
----
-
-### Phase 6: Load Testing & Hardening
-**Goal:** Prove system correctness under load.
-
-- [ ] k6 double-booking test (1000 VUs)
-- [ ] k6 concurrent event booking test
-- [ ] k6 booking expiration test
-- [ ] Performance benchmarking and optimization
-- [ ] Error handling hardening
-- [ ] Logging and observability setup
-
-**Deliverable:** Passing load tests with documented performance characteristics.
+- [ ] Auto-issue ticket on booking confirmation (Kafka consumer)
+- [ ] QR code generation (ZXing library)
+- [ ] Check-in by ticket ID
+- [ ] Check-in by QR code / check-in code
+- [ ] Ticket status management (VALID → USED → CANCELLED)
+- [ ] Staff check-in interface
 
 ---
 
-### Phase 7: Frontend
-**Goal:** User-facing booking interface.
+## Phase 7: Notifications
+**Duration:** Week 8
+**Branch:** `feature/seatguard-notifications`
 
-- [ ] React/Next.js project setup
-- [ ] Event listing and search
-- [ ] Interactive seat map with real-time availability
-- [ ] Booking flow (select seat → hold → pay)
-- [ ] Ticket display with QR code
-- [ ] User dashboard (bookings, tickets, notifications)
-- [ ] Responsive design for mobile
-
-**Deliverable:** Complete web application for end users.
+- [ ] Kafka consumer for all event types
+- [ ] Notification persistence (database)
+- [ ] WebSocket push to connected clients
+- [ ] Mark as read
+- [ ] Notification preferences (future)
+- [ ] Email notifications (future)
 
 ---
 
-### Phase 8: Admin Panel
-**Goal:** Event management interface for organizers.
+## Phase 8: Frontend
+**Duration:** Weeks 9-10
+**Branch:** `feature/seatguard-frontend`
 
-- [ ] Event creation and management
-- [ ] Section and seat configuration
-- [ ] Booking analytics and reporting
-- [ ] Attendee list and check-in monitoring
-- [ ] Revenue reports
-
-**Deliverable:** Admin interface for event organizers.
+- [ ] Landing page / event listing
+- [ ] Event detail page with seat map
+- [ ] Interactive seat selection (click to hold)
+- [ ] Booking flow (hold → payment → confirmation)
+- [ ] My bookings / My tickets pages
+- [ ] QR ticket display
+- [ ] Real-time notifications (WebSocket)
+- [ ] Responsive design (mobile-first)
 
 ---
 
-### Phase 9: Production Readiness
-**Goal:** Deploy and operate in production.
+## Phase 9: Integration & Testing
+**Duration:** Week 11
+**Branch:** `feature/seatguard-testing`
 
-- [ ] Kubernetes deployment manifests
+- [ ] Full E2E test suite
+- [ ] Load testing (k6) — 1000+ concurrent users
+- [ ] Performance tuning
+- [ ] Security audit (OWASP top 10)
+- [ ] API documentation (Swagger/OpenAPI)
+
+---
+
+## Phase 10: Deployment & Launch
+**Duration:** Week 12
+**Branch:** `feature/seatguard-deploy`
+
+- [ ] Production Docker Compose
+- [ ] Database migrations (Flyway)
+- [ ] Monitoring & alerting (Prometheus + Grafana)
+- [ ] Log aggregation (ELK or Loki)
+- [ ] SSL/TLS setup
 - [ ] CI/CD pipeline (GitHub Actions)
-- [ ] Monitoring and alerting (Prometheus + Grafana)
-- [ ] Log aggregation (ELK or similar)
-- [ ] SSL/TLS configuration
-- [ ] Database backup and recovery procedures
-- [ ] Load balancer configuration
-- [ ] Rate limiting and DDoS protection
-- [ ] Security audit
-
-**Deliverable:** Production-grade deployment with monitoring and alerting.
+- [ ] Soft launch → Public launch
 
 ---
 
 ## Future Enhancements
 
-### Short Term
-- [ ] Multi-language support (i18n)
-- [ ] Email/SMS notifications
-- [ ] Payment gateway integration (Stripe, VNPay)
 - [ ] Seat recommendation engine
-- [ ] Waitlist for sold-out events
-
-### Medium Term
+- [ ] Waitlist / queue system for sold-out events
+- [ ] Multi-currency support
+- [ ] Social login (Google, Facebook)
 - [ ] Mobile app (React Native)
-- [ ] Social features (share events, invite friends)
-- [ ] Loyalty program and discounts
-- [ ] Multi-venue support
-- [ ] API for third-party integrations
-
-### Long Term
-- [ ] Multi-region deployment
-- [ ] AI-powered dynamic pricing
-- [ ] Augmented reality seat preview
-- [ ] Blockchain-based ticket verification
-- [ ] Analytics dashboard for organizers
-
----
-
-## Timeline Estimate
-
-| Phase | Duration | Dependencies |
-|---|---|---|
-| Phase 1-2 | ✅ Done | — |
-| Phase 3 | 2-3 weeks | Phase 2 |
-| Phase 4 | 1-2 weeks | Phase 3 |
-| Phase 5 | 1-2 weeks | Phase 3 |
-| Phase 6 | 1 week | Phase 3-5 |
-| Phase 7 | 3-4 weeks | Phase 3-5 |
-| Phase 8 | 2-3 weeks | Phase 7 |
-| Phase 9 | 2-3 weeks | Phase 7-8 |
-
-**Total estimated time to production:** 12-18 weeks (solo developer), 6-10 weeks (small team).
-
----
-
-## Decision Log
-
-| Date | Decision | Rationale |
-|---|---|---|
-| 2024-01 | Spring Boot for backend | Strong transactional support, mature ecosystem |
-| 2024-01 | Node.js for notifications | Lightweight, excellent WebSocket support |
-| 2024-01 | Kafka over Redpanda | Broader ecosystem, KRaft mode available |
-| 2024-01 | Redis + PostgreSQL dual protection | Defense-in-depth against double-booking |
-| 2024-01 | UUID primary keys | Distributed ID generation, no sequence coordination |
-| 2024-01 | Flyway for migrations | Version-controlled schema changes |
+- [ ] Analytics dashboard
+- [ ] Resale / transfer tickets
+- [ ] Loyalty program

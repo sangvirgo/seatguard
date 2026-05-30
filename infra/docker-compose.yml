@@ -1,96 +1,76 @@
-# SeatGuard Infrastructure
-# Docker Compose for local development
-# Usage: docker compose up -d
-
 version: '3.8'
 
 services:
-  # ═══════════════════════════════════════════════════════════
-  # PostgreSQL 16 — Primary data store
-  # ═══════════════════════════════════════════════════════════
+  # ─── PostgreSQL 16 ──────────────────────────────────────
   postgres:
-    image: postgres:16-alpine
+    image: postgres:16
     container_name: seatguard-postgres
-    restart: unless-stopped
     environment:
-      POSTGRES_DB: seatguard
       POSTGRES_USER: seatguard
-      POSTGRES_PASSWORD: seatguard_dev_2024
-      PGDATA: /var/lib/postgresql/data/pgdata
+      POSTGRES_PASSWORD: seatguard_dev_2026
+      POSTGRES_DB: seatguard
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./init-db:/docker-entrypoint-initdb.d
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U seatguard -d seatguard"]
+      test: ["CMD-SHELL", "pg_isready -U seatguard"]
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
       - seatguard-net
 
-  # ═══════════════════════════════════════════════════════════
-  # Redis 7 — Distributed locks, caching, sessions
-  # ═══════════════════════════════════════════════════════════
+  # ─── Redis 7 ────────────────────────────────────────────
   redis:
-    image: redis:7-alpine
+    image: redis:7
     container_name: seatguard-redis
-    restart: unless-stopped
-    command: redis-server --requirepass seatguard_dev_2024 --maxmemory 256mb --maxmemory-policy allkeys-lru
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "seatguard_dev_2024", "ping"]
+      test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
       - seatguard-net
 
-  # ═══════════════════════════════════════════════════════════
-  # Apache Kafka 3.7 — Event streaming (KRaft mode, no ZooKeeper)
-  # ═══════════════════════════════════════════════════════════
+  # ─── Apache Kafka 3.7 (KRaft mode, no ZooKeeper) ───────
   kafka:
     image: bitnami/kafka:3.7
     container_name: seatguard-kafka
-    restart: unless-stopped
-    environment:
-      # KRaft mode configuration
-      KAFKA_CFG_NODE_ID: 1
-      KAFKA_CFG_PROCESS_ROLES: broker,controller
-      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
-      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      
-      # Listeners
-      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094
-      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,EXTERNAL://localhost:9094
-      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
-      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-      
-      # Topic settings
-      KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: "true"
-      KAFKA_CFG_NUM_PARTITIONS: 6
-      KAFKA_CFG_DEFAULT_REPLICATION_FACTOR: 1
-      KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      
-      # Performance
-      KAFKA_CFG_LOG_RETENTION_HOURS: 168
-      KAFKA_CFG_LOG_SEGMENT_BYTES: 1073741824
-      
-      # Allow plaintext in dev
-      KAFKA_CFG_SOCKET_SEND_BUFFER_BYTES: 102400
-      KAFKA_CFG_SOCKET_RECEIVE_BUFFER_BYTES: 102400
-      KAFKA_CFG_SOCKET_REQUEST_MAX_BYTES: 104857600
     ports:
       - "9092:9092"
-      - "9094:9094"
+      - "9093:9093"
+    environment:
+      # KRaft mode
+      KAFKA_CFG_NODE_ID: 1
+      KAFKA_CFG_PROCESS_ROLES: controller,broker
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+
+      # Listeners
+      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,EXTERNAL://localhost:9092
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+
+      # Topic auto-creation
+      KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_CFG_NUM_PARTITIONS: 3
+      KAFKA_CFG_DEFAULT_REPLICATION_FACTOR: 1
+
+      # Log retention
+      KAFKA_CFG_LOG_RETENTION_HOURS: 168
+      KAFKA_CFG_LOG_SEGMENT_BYTES: 1073741824
     volumes:
       - kafka_data:/bitnami/kafka
     healthcheck:
-      test: ["CMD-SHELL", "kafka-topics.sh --bootstrap-server localhost:9092 --list"]
+      test: ["CMD-SHELL", "kafka-topics.sh --bootstrap-server localhost:9092 --list || exit 1"]
       interval: 15s
       timeout: 10s
       retries: 10
@@ -100,11 +80,8 @@ services:
 
 volumes:
   postgres_data:
-    driver: local
   redis_data:
-    driver: local
   kafka_data:
-    driver: local
 
 networks:
   seatguard-net:

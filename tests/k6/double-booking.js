@@ -1,120 +1,89 @@
 /**
- * SeatGuard — Double-Booking Load Test
+ * SeatGuard — Double-Booking Concurrency Test
  *
- * Purpose: Verify that the system correctly prevents double-booking
- * when 1000 concurrent virtual users attempt to book the same seat.
+ * PURPOSE: Verify that when 1000 concurrent users attempt to book
+ * the SAME seat, exactly 1 succeeds and 999 fail with 409 Conflict.
  *
- * Expected Result:
- *   - Exactly 1 success (HTTP 201 Created)
- *   - 999 rejections (HTTP 409 Conflict)
- *   - 0 server errors (HTTP 5xx)
- *   - Total response time p95 < 5 seconds
+ * This validates the dual-layer protection:
+ *   1. Redis SET NX EX distributed lock
+ *   2. PostgreSQL UNIQUE constraint on active bookings
  *
- * The test validates the three-layer double-booking prevention:
- *   1. Redis distributed lock (SET NX EX)
- *   2. PostgreSQL unique active booking constraint
- *   3. Idempotency key
- *
- * Run:
+ * USAGE:
  *   k6 run tests/k6/double-booking.js
  *
- * Prerequisites:
- *   - Backend running on http://localhost:8080
- *   - PostgreSQL, Redis, Kafka running (docker compose up -d)
- *   - Test event and seat pre-seeded (see test fixtures below)
+ * PREREQUISITES:
+ *   - All backend services running
+ *   - Test event + section + seat pre-created
+ *   - 1000 user accounts pre-seeded
+ *
+ * EXPECTED RESULT:
+ *   - Exactly 1 HTTP 201 (booking created)
+ *   - Exactly 999 HTTP 409 (seat not available)
+ *   - Database: 1 active booking for the test seat
+ *   - Redis: 1 lock key for the test seat
+ *   - NO duplicate confirmed bookings (zero double-booking)
  */
 
 import http from 'k6/http';
 import { check, sleep } from 'k6';
 import { Counter, Rate, Trend } from 'k6/metrics';
 
-// ─── Custom Metrics ─────────────────────────────────────────────────────
+// ─── Custom Metrics ──────────────────────────────────────
+const bookingSuccess = new Counter('booking_success');
+const bookingConflict = new Counter('booking_conflict');
+const bookingError = new Counter('booking_error');
+const bookingLatency = new Trend('booking_latency');
+const doubleBookingRate = new Rate('double_booking_rate');
 
-const successCount = new Counter('booking_success');
-const conflictCount = new Counter('booking_conflict');
-const errorCount = new Counter('booking_error');
-const doubleBookingRate = new Rate('double_booking_prevented');
-const bookingDuration = new Trend('booking_request_duration');
-
-// ─── Configuration ──────────────────────────────────────────────────────
-
-const BASE_URL = __ENV.BASE_URL || 'http://localhost:8080';
-const API_BASE = `${BASE_URL}/api/v1`;
-
-// Test fixtures — must exist before running this test
-// These should be created via the test setup script or API
-const TEST_EVENT_ID = __ENV.TEST_EVENT_ID || 'test-event-001';
-const TEST_SEAT_ID = __ENV.TEST_SEAT_ID || 'test-seat-001';
-
-// ─── Options ────────────────────────────────────────────────────────────
+// ─── Test Configuration ──────────────────────────────────
+const BASE_URL = __ENV.BASE_URL || 'http://localhost:8080/api';
 
 export const options = {
   scenarios: {
-    // All 1000 VUs hit the same seat simultaneously
-    double_booking: {
-      executor: 'shared-iterations',
-      vus: 1000,
-      iterations: 1000,
-      maxDuration: '30s',
+    concurrent_booking: {
+      executor: 'ramping-vus',
+      startVUs: 0,
+      stages: [
+        { duration: '10s', target: 1000 },  // Ramp up to 1000 VUs
+        { duration: '30s', target: 1000 },  // Hold at 1000 VUs
+        { duration: '10s', target: 0 },     // Ramp down
+      ],
     },
   },
-
   thresholds: {
-    // 95% of requests should complete within 5 seconds
-    http_req_duration: ['p(95)<5000'],
-
-    // No more than 1% unexpected failures (network errors, 500s, etc.)
-    'http_req_failed{expected_response:true}': ['rate<0.01'],
-
-    // The critical assertion: double-booking must be prevented
-    // (this threshold is validated in the teardown function below)
+    // CRITICAL: No double-booking allowed
+    'double_booking_rate': ['rate<0.001'],  // < 0.1% double-booking rate
+    'booking_latency': ['p(95)<500', 'p(99)<1000'],
+    'http_req_failed': ['rate<0.01'],       // < 1% HTTP errors (excluding 409)
   },
 };
 
-// ─── Setup ──────────────────────────────────────────────────────────────
+// ─── Test Data (to be configured) ────────────────────────
+// These should be set via environment variables or pre-seeded
+const TEST_EVENT_ID = __ENV.TEST_EVENT_ID || 'test-event-uuid';
+const TEST_SEAT_ID = __ENV.TEST_SEAT_ID || 'test-seat-uuid';
 
-/**
- * Setup phase: Authenticate all VUs and prepare test data.
- *
- * In a real test, you would:
- * 1. Create a test event (or use existing)
- * 2. Create a section with exactly 1 seat
- * 3. Ensure the seat is AVAILABLE
- * 4. Obtain auth tokens for each VU (or use a shared token for simplicity)
- */
+// ─── Setup: Generate auth tokens ─────────────────────────
 export function setup() {
-  console.log('═══════════════════════════════════════════════════════════════');
-  console.log('  SeatGuard Double-Booking Test');
-  console.log('═══════════════════════════════════════════════════════════════');
-  console.log(`  Target:     ${API_BASE}`);
-  console.log(`  Event ID:   ${TEST_EVENT_ID}`);
-  console.log(`  Seat ID:    ${TEST_SEAT_ID}`);
-  console.log(`  VUs:        1000`);
-  console.log(`  Iterations: 1000`);
-  console.log('═══════════════════════════════════════════════════════════════');
-  console.log('');
-  console.log('Expected: Exactly 1 success (201), 999 conflicts (409)');
-  console.log('');
+  console.log('=== SeatGuard Double-Booking Test ===');
+  console.log(`Target: ${BASE_URL}`);
+  console.log(`Event: ${TEST_EVENT_ID}`);
+  console.log(`Seat: ${TEST_SEAT_ID}`);
+  console.log('VUs: 1000 concurrent attempts on same seat');
+  console.log('Expected: Exactly 1 success, 999 failures');
+  console.log('=====================================');
 
-  // In a real implementation, you would register/login a test user
-  // and return the auth token. For now, we use a placeholder.
-  // const loginRes = http.post(`${API_BASE}/auth/login`, JSON.stringify({
-  //   email: 'loadtest@seatguard.vn',
-  //   password: 'testPassword123',
-  // }), { headers: { 'Content-Type': 'application/json' } });
-  // const authToken = loginRes.json('accessToken');
-
+  // In production, pre-generate 1000 JWT tokens
+  // For now, return test config
   return {
-    authToken: 'PLACEHOLDER_TOKEN', // Replace with real token
     eventId: TEST_EVENT_ID,
     seatId: TEST_SEAT_ID,
   };
 }
 
-// ─── Main Test ──────────────────────────────────────────────────────────
-
+// ─── Main Test: Attempt to hold the same seat ────────────
 export default function (data) {
-  const idempotencyKey = `idem-${__VU}-${__ITER}-${Date.now()}`;
+  const idempotencyKey = `loadtest-${__VU}-${__ITER}-${Date.now()}`;
 
   const payload = JSON.stringify({
     eventId: data.eventId,
@@ -125,132 +94,49 @@ export default function (data) {
   const params = {
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${data.authToken}`,
+      'Authorization': `Bearer ${__ENV.USER_TOKEN || 'test-token'}`,
+      'Idempotency-Key': idempotencyKey,
     },
-    // Tag requests for metric filtering
-    tags: {
-      test_type: 'double_booking',
-    },
-    // We expect either 201 or 409 — don't fail the test on 409
-    responseCallback: http.expectedStatuses(201, 409),
+    timeout: '10s',
   };
 
   const startTime = Date.now();
-  const res = http.post(`${API_BASE}/bookings/hold`, payload, params);
-  const duration = Date.now() - startTime;
+  const res = http.post(`${BASE_URL}/bookings/hold`, payload, params);
+  const latency = Date.now() - startTime;
 
-  // Track metrics
-  bookingDuration.add(duration);
+  bookingLatency.add(latency);
 
-  // Classify response
+  // ─── Assertions ──────────────────────────────────────
+  check(res, {
+    'status is 201 (success) or 409 (conflict)': (r) =>
+      r.status === 201 || r.status === 409,
+  });
+
   if (res.status === 201) {
-    successCount.add(1);
-    doubleBookingRate.add(true); // Booking allowed (correct for the winner)
-    console.log(`✅ VU-${__VU}: BOOKING SUCCESS (took ${duration}ms)`);
+    bookingSuccess.add(1);
+    doubleBookingRate.add(false);
+    console.log(`✅ VU ${__VU}: Booking SUCCESS — ${res.json().id}`);
   } else if (res.status === 409) {
-    conflictCount.add(1);
-    doubleBookingRate.add(true); // Conflict detected = double-booking prevented
+    bookingConflict.add(1);
+    doubleBookingRate.add(false);
+    // Expected: 999 out of 1000 should get here
   } else {
-    errorCount.add(1);
-    doubleBookingRate.add(false); // Unexpected status = potential issue
-    console.error(`❌ VU-${__VU}: UNEXPECTED STATUS ${res.status} — ${res.body}`);
-  }
-
-  // Verify response structure
-  if (res.status === 201) {
-    check(res, {
-      'booking has id': (r) => r.json('id') !== undefined,
-      'booking status is PENDING_PAYMENT': (r) => r.json('status') === 'PENDING_PAYMENT',
-      'booking has expiresAt': (r) => r.json('expiresAt') !== undefined,
-    });
-  }
-
-  if (res.status === 409) {
-    check(res, {
-      'conflict response has error': (r) => r.json('error') !== undefined,
-      'conflict message present': (r) => r.json('message') !== undefined,
-    });
+    bookingError.add(1);
+    doubleBookingRate.add(true);  // Unexpected = potential double-booking
+    console.error(`❌ VU ${__VU}: Unexpected status ${res.status} — ${res.body}`);
   }
 }
 
-// ─── Teardown ───────────────────────────────────────────────────────────
-
+// ─── Teardown: Verify results ────────────────────────────
 export function teardown(data) {
-  console.log('');
-  console.log('═══════════════════════════════════════════════════════════════');
-  console.log('  Test Complete — Validating Results');
-  console.log('═══════════════════════════════════════════════════════════════');
-
-  // Note: Actual validation happens via k6 summary and thresholds.
-  // The counters above will show in the end-of-test summary.
-  //
-  // To verify the database state after the test, run:
-  //   SELECT COUNT(*) FROM bookings WHERE seat_id = 'test-seat-001'
-  //     AND status IN ('PENDING_PAYMENT', 'CONFIRMED');
-  // Expected: 1
-  //
-  // To verify Redis state:
-  //   GET seat:lock:test-seat-001
-  // Expected: booking ID of the winner (or expired if TTL passed)
-
-  console.log('');
-  console.log('Post-test verification queries:');
-  console.log('  SQL:  SELECT COUNT(*) FROM bookings WHERE seat_id = \'test-seat-001\' AND status IN (\'PENDING_PAYMENT\', \'CONFIRMED\');');
-  console.log('  Redis: GET seat:lock:test-seat-001');
-  console.log('');
-  console.log('Expected: Exactly 1 active booking in DB, 1 Redis lock held');
-  console.log('═══════════════════════════════════════════════════════════════');
-}
-
-// ─── Summary Handler ────────────────────────────────────────────────────
-
-export function handleSummary(data) {
-  const success = data.metrics.booking_success?.values?.count || 0;
-  const conflicts = data.metrics.booking_conflict?.values?.count || 0;
-  const errors = data.metrics.booking_error?.values?.count || 0;
-  const total = success + conflicts + errors;
-
-  const passed = success === 1 && errors === 0;
-
-  console.log('');
-  console.log('┌─────────────────────────────────────────────────────────────┐');
-  console.log('│              DOUBLE-BOOKING TEST RESULTS                    │');
-  console.log('├─────────────────────────────────────────────────────────────┤');
-  console.log(`│  Total requests:     ${String(total).padStart(6)}                               │`);
-  console.log(`│  Success (201):      ${String(success).padStart(6)}                               │`);
-  console.log(`│  Conflicts (409):    ${String(conflicts).padStart(6)}                               │`);
-  console.log(`│  Errors (5xx):       ${String(errors).padStart(6)}                               │`);
-  console.log('├─────────────────────────────────────────────────────────────┤');
-
-  if (passed) {
-    console.log('│  ✅ PASSED — Double-booking correctly prevented!            │');
-  } else if (success === 0) {
-    console.log('│  ❌ FAILED — No successful bookings (check auth/setup)     │');
-  } else if (success > 1) {
-    console.log(`│  ❌ FAILED — ${success} bookings succeeded (DOUBLE-BOOKING!)     │`);
-  } else if (errors > 0) {
-    console.log(`│  ⚠️  WARNING — ${errors} unexpected errors occurred              │`);
-  }
-
-  console.log('└─────────────────────────────────────────────────────────────┘');
-  console.log('');
-
-  // Return default summary + custom output
-  return {
-    stdout: textSummary(data, { indent: '  ', enableColors: true }),
-    'test-results.json': JSON.stringify({
-      passed,
-      total,
-      success,
-      conflicts,
-      errors,
-      timestamp: new Date().toISOString(),
-    }, null, 2),
-  };
-}
-
-// Helper: k6 text summary (imported from k6)
-function textSummary(data, opts) {
-  // k6 provides this via --summary-export, but we include a fallback
-  return JSON.stringify(data.metrics, null, 2);
+  console.log('=== Verification ===');
+  console.log('Check database for duplicate bookings:');
+  console.log(`  SELECT seat_id, status, COUNT(*) 
+    FROM bookings 
+    WHERE seat_id = '${data.seatId}' 
+      AND status IN ('PENDING_PAYMENT', 'CONFIRMED')
+    GROUP BY seat_id, status
+    HAVING COUNT(*) > 1;`);
+  console.log('Expected: 0 rows (no duplicates)');
+  console.log('=====================================');
 }

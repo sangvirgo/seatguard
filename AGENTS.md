@@ -1,70 +1,74 @@
-# AGENTS.md — SeatGuard Agent Workflow Rules
+# AGENTS.md — SeatGuard Agent Workflow
 
-## Core Principles
+## Project Conventions
 
-1. **One coder at a time.** Only one agent may actively write code per service at any given moment. No parallel edits to the same service.
-2. **Reviewer is read-only.** The reviewing agent must NOT modify code. Review comments only.
-3. **No direct push to `main`.** All changes go through feature branches and pull requests.
-4. **Feature branches only.** Branch naming: `feature/{service}-{description}` (e.g., `feature/booking-hold-seat`).
-5. **Always report git status.** Every agent turn must include: current branch, uncommitted files, and last commit hash.
+### Technology Rules
+- **Spring Boot** handles: booking, payment, seat-locking, core business logic
+- **Node.js (NestJS)** handles: notification service only (Kafka consumer + WebSocket)
+- **Kafka** is the message broker — NOT Redpanda
+- **Redis** for distributed locks (SET NX EX with TTL)
+- **PostgreSQL** for persistent data with unique constraints
+- Both Redis lock AND DB unique constraint are **required** for double-booking protection
 
-## Service Boundaries
+### Git Workflow
+- **Never push to `main`/`master` directly**
+- All work goes to **feature branches** (`feature/*`, `fix/*`, `chore/*`)
+- Always run and report:
+  - `git status`
+  - `git diff --stat` before committing
+- Commit messages follow [Conventional Commits](https://www.conventionalcommits.org/)
 
-### Spring Boot (backend/) — Java 21 / Spring Boot 3.3
-Responsible for:
-- **Authentication & Authorization** — JWT-based auth, role management
-- **Event Management** — CRUD, seat maps, sections, publishing
-- **Booking Engine** — Seat hold, payment processing, cancellation, expiration
-- **Seat Locking** — Redis distributed lock management
-- **Ticket Management** — Issuance, QR generation, check-in validation
-- **Database Access** — PostgreSQL via Spring Data JPA
+### Agent Roles
 
-### Node.js (notification-service/) — Node.js 22 / Fastify
-Responsible for:
-- **Kafka Consumer** — Consume booking/ticket events
-- **WebSocket Server** — Real-time notifications to clients
-- **Push Notifications** — Email/SMS/push delivery
-- **Notification Storage** — Read/unread status, notification history
+#### Coder Agent
+- **Only ONE active coder agent at a time**
+- Can create, edit, delete files
+- Can commit and push to feature branches
+- Must report changes after each logical unit of work
 
-**⚠️ Node.js must NOT handle booking logic, payment, or seat locking. Those belong to Spring Boot.**
+#### Reviewer Agent
+- **Read-only access**
+- Reviews code, suggests changes
+- Cannot commit or push
+- Reports findings to orchestrator
 
-## Infrastructure Rules
+#### Tester Agent
+- **Read-only access**
+- Runs tests, reports results
+- Cannot modify source code
+- Reports test outcomes to orchestrator
 
-- **Kafka, not Redpanda.** Use Apache Kafka 3.7 with KRaft mode (no ZooKeeper).
-- **Redis + DB dual protection.** Every seat operation must check/set Redis lock AND rely on PostgreSQL unique constraint. Neither alone is sufficient.
-- **Docker Compose for local dev only.** Production infrastructure is managed separately.
+### Safety Rules
+- Stop after **two failed fix attempts** — escalate to human
+- Always validate before committing (lint, compile check)
+- Do not modify infrastructure configs without explicit approval
+- Do not start full Docker stack unless explicitly requested (RAM is limited)
 
-## Error Handling
-
-- **Stop after 2 failed fixes.** If an agent fails to fix the same issue twice, escalate to the human. Do not loop indefinitely.
-- **Always log the error.** Include full stack trace or error message in the report.
-- **Idempotency first.** Every write operation should be safe to retry.
-
-## Git Workflow
-
+### Commit Message Format
 ```
-main (protected) ← PR ← feature/branch-name
+<type>(<scope>): <description>
+
+[optional body]
+[optional footer]
 ```
 
-1. Create feature branch from `main`
-2. Make changes, commit incrementally
-3. Push branch, open PR
-4. Reviewer agent reviews (read-only)
-5. Merge to `main` after approval
+Types: `feat`, `fix`, `chore`, `docs`, `refactor`, `test`, `ci`
 
-## Commit Messages
+### Examples
+```
+feat(booking): implement seat hold with Redis lock
+fix(auth): resolve JWT token refresh race condition
+docs(api): update booking endpoint documentation
+test(k6): add double-booking concurrency test
+```
 
-Follow conventional commits:
-- `feat: add seat hold endpoint`
-- `fix: resolve race condition in booking expiration`
-- `chore: update Docker Compose config`
-- `docs: add API contract for booking service`
-- `test: add k6 double-booking load test`
-
-## Communication Protocol
-
-When reporting to the human, include:
-1. **What was done** — Summary of changes
-2. **What's next** — Recommended next steps
-3. **Blockers** — Any issues requiring human intervention
-4. **Git status** — Branch, uncommitted changes, latest commit
+### Service Boundaries
+| Service | Language | Can Do | Cannot Do |
+|---------|----------|--------|-----------|
+| api-gateway | Java/Spring | Route, filter, rate-limit | Business logic |
+| auth-service | Java/Spring | Auth, JWT, user mgmt | Booking logic |
+| event-service | Java/Spring | Events, seats, seat map | Payments |
+| booking-service | Java/Spring | Hold, pay, cancel bookings | Notifications |
+| ticket-service | Java/Spring | Tickets, QR, check-in | Bookings |
+| notification-service | NestJS | Push, WebSocket, Kafka consume | Core business |
+| frontend | Next.js | UI, API calls | Backend logic |

@@ -1,331 +1,231 @@
-# Event Flow
+# Event Flow — Kafka Events
+
+## Overview
+
+SeatGuard uses Apache Kafka (KRaft mode, no ZooKeeper) as the asynchronous message broker for inter-service communication. Events follow the **Outbox Pattern** for reliability.
 
 ## Kafka Configuration
 
-- **Broker:** Apache Kafka 3.7 with KRaft mode (no ZooKeeper)
-- **Topics:** 3 topics, 6 partitions each, replication factor 1 (dev), 3 (prod)
+- **Mode:** KRaft (no ZooKeeper)
+- **Image:** bitnami/kafka:3.7
+- **Topics:** Auto-created with 3 partitions, replication factor 1
 
-## Topics
+## Topic Design
 
 | Topic | Producer | Consumers | Purpose |
-|---|---|---|---|
-| `booking.events` | Spring Boot (Booking) | Node.js (Notification) | Booking lifecycle events |
-| `ticket.events` | Spring Boot (Ticket) | Node.js (Notification) | Ticket lifecycle events |
-| `notification.events` | Node.js (Notification) | — | Internal notification processing |
+|-------|----------|-----------|---------|
+| `booking-events` | booking-service | ticket-service, notification-service | Booking lifecycle |
+| `ticket-events` | ticket-service | notification-service | Ticket lifecycle |
 
-## Event Types
+---
+
+## Event Catalog
 
 ### BOOKING_HELD
-
-Published when a seat is successfully held for booking.
+- **Producer:** booking-service
+- **Trigger:** User successfully holds a seat
+- **Consumers:** notification-service
 
 ```json
 {
   "eventId": "uuid",
   "eventType": "BOOKING_HELD",
-  "timestamp": "2024-01-15T10:30:00Z",
+  "timestamp": "2026-06-15T19:00:00Z",
   "data": {
     "bookingId": "uuid",
     "userId": "uuid",
     "eventId": "uuid",
-    "eventName": "Concert: Son Tung M-TP",
     "seatId": "uuid",
-    "seatLabel": "A-1",
-    "sectionName": "VIP",
-    "price": 5000000,
-    "expiresAt": "2024-01-15T10:35:00Z"
+    "expiresAt": "2026-06-15T19:05:00Z"
   }
 }
 ```
 
-**Triggers:**
-- Notification: "Seat A-1 is being held for you. Complete payment within 5 minutes."
-
----
-
 ### BOOKING_CONFIRMED
-
-Published when payment is successful and booking is confirmed.
+- **Producer:** booking-service
+- **Trigger:** Payment successful
+- **Consumers:** ticket-service (issue ticket), notification-service
 
 ```json
 {
   "eventId": "uuid",
   "eventType": "BOOKING_CONFIRMED",
-  "timestamp": "2024-01-15T10:32:00Z",
+  "timestamp": "2026-06-15T19:02:00Z",
   "data": {
     "bookingId": "uuid",
     "userId": "uuid",
     "eventId": "uuid",
-    "eventName": "Concert: Son Tung M-TP",
-    "seatLabel": "A-1",
-    "ticketId": "uuid",
-    "paidAt": "2024-01-15T10:32:00Z"
+    "seatId": "uuid",
+    "amount": 2500000,
+    "paymentReference": "PAY-123456"
   }
 }
 ```
 
-**Triggers:**
-- Notification: "Payment confirmed! Your ticket for Concert: Son Tung M-TP (Seat A-1) is ready."
-- Seat status: HELD → SOLD
-
----
-
 ### BOOKING_EXPIRED
-
-Published when the 5-minute payment window expires.
+- **Producer:** booking-service (scheduled task)
+- **Trigger:** Payment TTL expired (default 5 min)
+- **Consumers:** notification-service
 
 ```json
 {
   "eventId": "uuid",
   "eventType": "BOOKING_EXPIRED",
-  "timestamp": "2024-01-15T10:35:00Z",
+  "timestamp": "2026-06-15T19:05:00Z",
   "data": {
     "bookingId": "uuid",
     "userId": "uuid",
     "eventId": "uuid",
-    "eventName": "Concert: Son Tung M-TP",
-    "seatLabel": "A-1",
-    "expiredAt": "2024-01-15T10:35:00Z"
+    "seatId": "uuid"
   }
 }
 ```
 
-**Triggers:**
-- Notification: "Your booking for Seat A-1 has expired. The seat is now available again."
-- Seat status: HELD → AVAILABLE
-- Redis lock: Released
-
----
-
 ### BOOKING_CANCELLED
-
-Published when a booking is cancelled by the user or system.
+- **Producer:** booking-service
+- **Trigger:** User cancels booking
+- **Consumers:** ticket-service (cancel ticket if exists), notification-service
 
 ```json
 {
   "eventId": "uuid",
   "eventType": "BOOKING_CANCELLED",
-  "timestamp": "2024-01-15T10:33:00Z",
+  "timestamp": "2026-06-15T19:03:00Z",
   "data": {
     "bookingId": "uuid",
     "userId": "uuid",
     "eventId": "uuid",
-    "eventName": "Concert: Son Tung M-TP",
-    "seatLabel": "A-1",
-    "cancelledBy": "USER",
-    "cancelledAt": "2024-01-15T10:33:00Z"
+    "seatId": "uuid",
+    "reason": "USER_INITIATED"
   }
 }
 ```
 
-**Triggers:**
-- Notification: "Your booking for Seat A-1 has been cancelled."
-- Seat status: HELD → AVAILABLE
-- Redis lock: Released
-
----
-
 ### BOOKING_PAYMENT_FAILED
-
-Published when payment processing fails.
+- **Producer:** booking-service
+- **Trigger:** Payment processing error
+- **Consumers:** notification-service
 
 ```json
 {
   "eventId": "uuid",
   "eventType": "BOOKING_PAYMENT_FAILED",
-  "timestamp": "2024-01-15T10:32:00Z",
+  "timestamp": "2026-06-15T19:02:30Z",
   "data": {
     "bookingId": "uuid",
     "userId": "uuid",
-    "eventId": "uuid",
-    "eventName": "Concert: Son Tung M-TP",
-    "seatLabel": "A-1",
-    "failureReason": "INSUFFICIENT_FUNDS",
-    "failedAt": "2024-01-15T10:32:00Z"
+    "error": "INSUFFICIENT_FUNDS"
   }
 }
 ```
 
-**Triggers:**
-- Notification: "Payment failed for Seat A-1. Please try again before the hold expires."
-- Seat status: Remains HELD (user can retry within TTL)
-
----
-
 ### TICKET_ISSUED
-
-Published when a ticket is generated after successful payment.
+- **Producer:** ticket-service
+- **Trigger:** Ticket created after booking confirmation
+- **Consumers:** notification-service
 
 ```json
 {
   "eventId": "uuid",
   "eventType": "TICKET_ISSUED",
-  "timestamp": "2024-01-15T10:32:00Z",
+  "timestamp": "2026-06-15T19:02:05Z",
   "data": {
     "ticketId": "uuid",
     "bookingId": "uuid",
     "userId": "uuid",
     "eventId": "uuid",
-    "eventName": "Concert: Son Tung M-TP",
-    "seatLabel": "A-1",
-    "sectionName": "VIP",
-    "qrCodeData": "TKT-{uuid}-{hmac_signature}",
-    "issuedAt": "2024-01-15T10:32:00Z"
+    "seatInfo": "VIP - Row A, Seat 1",
+    "checkInCode": "SG-ABCD1234"
   }
 }
 ```
 
-**Triggers:**
-- Notification: "Your ticket is ready! Show the QR code at the entrance."
-
----
-
 ### TICKET_USED
-
-Published when a ticket is checked in at the venue.
+- **Producer:** ticket-service
+- **Trigger:** Successful check-in
+- **Consumers:** notification-service
 
 ```json
 {
   "eventId": "uuid",
   "eventType": "TICKET_USED",
-  "timestamp": "2024-06-15T18:45:00Z",
+  "timestamp": "2026-06-15T18:55:00Z",
   "data": {
     "ticketId": "uuid",
     "userId": "uuid",
     "eventId": "uuid",
-    "eventName": "Concert: Son Tung M-TP",
-    "seatLabel": "A-1",
-    "checkedInAt": "2024-06-15T18:45:00Z",
+    "checkedInAt": "2026-06-15T18:55:00Z",
     "checkedInBy": "staff-uuid"
   }
 }
 ```
 
-**Triggers:**
-- Notification: "Welcome! Your ticket for Seat A-1 has been scanned. Enjoy the show!"
-
 ---
 
 ## Event Flow Diagrams
 
-### Successful Booking Flow
-
+### Happy Path: Booking → Ticket
 ```
-User          Backend         Redis        PostgreSQL      Kafka         Notification
- │               │              │              │             │               │
- │  Hold seat    │              │              │             │               │
- │──────────────▶│              │              │             │               │
- │               │  SET NX EX   │              │             │               │
- │               │─────────────▶│              │             │               │
- │               │  ✓ locked    │              │             │               │
- │               │◀─────────────│              │             │               │
- │               │              │              │             │               │
- │               │  INSERT      │              │             │               │
- │               │───────────────────────────▶│             │               │
- │               │  ✓ saved     │              │             │               │
- │               │◀───────────────────────────│             │               │
- │               │              │              │             │               │
- │               │  PUBLISH     │              │             │               │
- │               │────────────────────────────────────────▶│               │
- │  201 OK       │              │              │  BOOKING_HELD              │
- │◀──────────────│              │              │             │───────▶       │
- │               │              │              │             │  notify user  │
- │               │              │              │             │               │
- │  Pay          │              │              │             │               │
- │──────────────▶│              │              │             │               │
- │               │  UPDATE      │              │             │               │
- │               │───────────────────────────▶│             │               │
- │               │  ✓ confirmed │              │             │               │
- │               │◀───────────────────────────│             │               │
- │               │              │              │             │               │
- │               │  PUBLISH     │              │             │               │
- │               │────────────────────────────────────────▶│               │
- │               │              │              │ BOOKING_CONFIRMED          │
- │               │              │              │             │───────▶       │
- │               │              │              │             │  notify user  │
- │               │              │              │             │               │
- │               │  DEL NX      │              │             │               │
- │               │─────────────▶│              │             │               │
- │  200 OK       │              │              │             │               │
- │◀──────────────│              │              │             │               │
+User                Booking Svc         Kafka              Ticket Svc          Notification Svc
+ │                      │                  │                    │                     │
+ │──Hold seat──────────▶│                  │                    │                     │
+ │                      │──BOOKING_HELED──▶│                    │                     │
+ │◀─Booking PENDING─────│                  │──consume──────────▶│                     │
+ │                      │                  │                    │                     │
+ │──Pay────────────────▶│                  │                    │                     │
+ │                      │──BOOKING_CONFIRMED─▶│                 │                     │
+ │◀─Booking CONFIRMED───│                  │──consume──────────▶│                     │
+ │                      │                  │                    │──Create ticket      │
+ │                      │                  │                    │──TICKET_ISSUED─────▶│
+ │                      │                  │                    │                     │──Push WS──▶User
+ │                      │                  │                    │                     │
+ │◀─Ticket + QR────────────────────────────────────────────────│                     │
 ```
 
-### Double-Booking Rejection Flow
-
+### Expiry Flow
 ```
-User A        User B          Backend         Redis        PostgreSQL
- │               │               │              │              │
- │  Hold seat    │               │              │              │
- │──────────────▶│               │              │              │
- │               │               │  SET NX EX   │              │
- │               │               │─────────────▶│              │
- │               │               │  ✓ locked    │              │
- │               │               │◀─────────────│              │
- │               │               │              │              │
- │               │               │  INSERT      │              │
- │               │               │───────────────────────────▶│
- │               │               │  ✓ saved     │              │
- │               │               │◀───────────────────────────│
- │               │               │              │              │
- │               │  Hold same    │              │              │
- │               │──────────────▶│              │              │
- │               │               │  SET NX EX   │              │
- │               │               │─────────────▶│              │
- │               │               │  ✗ exists    │              │
- │               │               │◀─────────────│              │
- │               │               │              │              │
- │               │  409 Conflict │              │              │
- │               │◀──────────────│              │              │
+Booking Svc (scheduled task)     Kafka              Notification Svc
+        │                          │                      │
+        │──Check expired bookings  │                      │
+        │──BOOKING_EXPIRED────────▶│                      │
+        │                          │──consume────────────▶│
+        │                          │                      │──Push WS──▶User
 ```
 
-### Booking Expiration Flow
-
+### Check-in Flow
 ```
-Scheduler       Backend         Redis        PostgreSQL      Kafka
- │               │              │              │              │
- │  Find expired │              │              │              │
- │──────────────▶│              │              │              │
- │               │  SELECT      │              │              │
- │               │  WHERE       │              │              │
- │               │  expires_at  │              │              │
- │               │  < now()     │              │              │
- │               │───────────────────────────▶│              │
- │               │  expired     │              │              │
- │               │  bookings    │              │              │
- │               │◀───────────────────────────│              │
- │               │              │              │              │
- │               │  DEL lock    │              │              │
- │               │─────────────▶│              │              │
- │               │  ✓ released  │              │              │
- │               │◀─────────────│              │              │
- │               │              │              │              │
- │               │  UPDATE      │              │              │
- │               │  SET status  │              │              │
- │               │  = 'EXPIRED' │              │              │
- │               │───────────────────────────▶│              │
- │               │  ✓ updated   │              │              │
- │               │◀───────────────────────────│              │
- │               │              │              │              │
- │               │  PUBLISH     │              │              │
- │               │─────────────────────────────────────────▶│
- │               │              │              │ BOOKING_EXPIRED
- │               │              │              │              │
+Staff               Ticket Svc          Kafka              Notification Svc
+ │                      │                  │                     │
+ │──Scan QR / Enter code│                  │                     │
+ │──Check-in───────────▶│                  │                     │
+ │                      │──Validate ticket │                     │
+ │                      │──Mark USED       │                     │
+ │                      │──TICKET_USED────▶│                     │
+ │◀─Check-in success────│                  │──consume──────────▶│
+ │                      │                  │                     │──Push WS──▶User
 ```
 
-## Consumer Group Configuration
+---
 
-| Consumer Group | Subscribed Topics | Instances |
-|---|---|---|
-| `notification-service` | `booking.events`, `ticket.events` | 3 (scaled) |
+## Consumer Configuration
+
+```java
+// Spring Boot Kafka consumer config
+@Bean
+public ConsumerFactory<String, BookingEvent> bookingEventConsumerFactory() {
+    Map<String, Object> props = new HashMap<>();
+    props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+    props.put(ConsumerConfig.GROUP_ID_CONFIG, "ticket-service-group");
+    props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+    props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
+    props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+    props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
+    return new DefaultKafkaConsumerFactory<>(props);
+}
+```
 
 ## Error Handling
 
-- **Dead Letter Queue (DLQ):** Failed messages after 3 retries are sent to `{topic}.dlq`
-- **Retry Policy:** Exponential backoff — 1s, 5s, 15s
-- **Idempotency:** All consumers are idempotent (check if notification already exists before creating)
-
-## Monitoring
-
-- **Lag:** Monitor consumer lag per partition
-- **Throughput:** Messages/second per topic
-- **Error Rate:** DLQ message count
+- **Retry:** 3 attempts with exponential backoff (1s, 2s, 4s)
+- **Dead Letter Topic:** `booking-events.DLT` for failed messages
+- **Idempotent consumers:** Check event ID before processing

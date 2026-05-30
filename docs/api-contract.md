@@ -1,13 +1,15 @@
 # API Contract
 
-Base URL: `http://localhost:8080/api/v1`
+## Base URL
+```
+http://localhost:8080/api
+```
 
-All endpoints require `Content-Type: application/json` unless noted.
-Authenticated endpoints require `Authorization: Bearer {jwt_token}`.
+All requests go through API Gateway. Authenticated endpoints require `Authorization: Bearer <token>`.
 
 ---
 
-## 1. Auth
+## Auth Service
 
 ### POST /auth/register
 Register a new user.
@@ -22,21 +24,15 @@ Register a new user.
 }
 ```
 
-**Response: `201 Created`**
+**Response (201):**
 ```json
 {
   "id": "uuid",
   "email": "user@example.com",
   "fullName": "Nguyen Van A",
-  "createdAt": "2024-01-15T10:30:00Z"
+  "createdAt": "2026-01-15T10:30:00Z"
 }
 ```
-
-**Errors:**
-- `400` — Validation failed
-- `409` — Email already registered
-
----
 
 ### POST /auth/login
 Authenticate and receive tokens.
@@ -49,207 +45,118 @@ Authenticate and receive tokens.
 }
 ```
 
-**Response: `200 OK`**
+**Response (200):**
 ```json
 {
-  "accessToken": "eyJhbGciOiJIUzI1NiIs...",
-  "refreshToken": "dGhpcyBpcyBhIHJlZnJlc2g...",
-  "expiresIn": 900,
-  "tokenType": "Bearer"
+  "accessToken": "eyJ...",
+  "refreshToken": "eyJ...",
+  "expiresIn": 900
 }
 ```
 
-**Errors:**
-- `400` — Validation failed
-- `401` — Invalid credentials
-
----
-
 ### POST /auth/refresh
-Refresh an expired access token.
+Refresh access token.
 
 **Request:**
 ```json
 {
-  "refreshToken": "dGhpcyBpcyBhIHJlZnJlc2g..."
+  "refreshToken": "eyJ..."
 }
 ```
 
-**Response: `200 OK`**
+**Response (200):**
 ```json
 {
-  "accessToken": "eyJhbGciOiJIUzI1NiIs...",
-  "expiresIn": 900,
-  "tokenType": "Bearer"
+  "accessToken": "eyJ...",
+  "expiresIn": 900
 }
 ```
 
-**Errors:**
-- `401` — Invalid or expired refresh token
+### GET /auth/me
+Get current user profile. **Requires auth.**
 
----
-
-### GET /auth/me 🔒
-Get current user profile.
-
-**Response: `200 OK`**
+**Response (200):**
 ```json
 {
   "id": "uuid",
   "email": "user@example.com",
   "fullName": "Nguyen Van A",
   "phone": "+84901234567",
-  "roles": ["USER"],
-  "createdAt": "2024-01-15T10:30:00Z"
+  "createdAt": "2026-01-15T10:30:00Z"
 }
 ```
 
-**Errors:**
-- `401` — Unauthorized
-
 ---
 
-## 2. Event
+## Event Service
 
-### POST /events 🔒 (Admin)
-Create a new event.
+### POST /events
+Create a new event. **Requires auth (admin).**
 
 **Request:**
 ```json
 {
-  "name": "Concert: Son Tung M-TP",
-  "description": "Live concert at My Dinh Stadium",
-  "venue": "My Dinh National Stadium, Hanoi",
-  "startTime": "2024-06-15T19:00:00Z",
-  "endTime": "2024-06-15T22:00:00Z",
-  "category": "CONCERT",
-  "imageUrl": "https://cdn.seatguard.vn/events/sontung.jpg"
+  "name": "Concert A 2026",
+  "description": "Summer music festival",
+  "venue": "National Stadium, HCMC",
+  "startTime": "2026-06-15T19:00:00Z",
+  "endTime": "2026-06-15T23:00:00Z",
+  "category": "CONCERT"
 }
 ```
 
-**Response: `201 Created`**
+**Response (201):**
 ```json
 {
   "id": "uuid",
-  "name": "Concert: Son Tung M-TP",
+  "name": "Concert A 2026",
   "status": "DRAFT",
-  "createdAt": "2024-01-15T10:30:00Z"
+  "createdAt": "2026-01-15T10:30:00Z"
 }
 ```
 
----
+### PUT /events/{eventId}
+Update event details. **Requires auth (admin).**
+
+### POST /events/{eventId}/sections
+Add a section to an event. **Requires auth (admin).**
+
+**Request:**
+```json
+{
+  "name": "VIP",
+  "description": "Front row VIP seats",
+  "price": 2500000,
+  "capacity": 50
+}
+```
+
+### POST /events/{eventId}/seats/generate
+Auto-generate seats for all sections. **Requires auth (admin).**
+
+**Request:**
+```json
+{
+  "rowsPerSection": 10,
+  "seatsPerRow": 20
+}
+```
+
+### POST /events/{eventId}/publish
+Publish event (DRAFT → PUBLISHED). **Requires auth (admin).**
 
 ### GET /events
-List events with pagination and filters.
+List published events. Public.
 
-**Query Parameters:**
-- `page` (int, default: 0)
-- `size` (int, default: 20)
-- `category` (string, optional)
-- `status` (string, optional: DRAFT, PUBLISHED, CANCELLED, COMPLETED)
-- `search` (string, optional — searches name and description)
-
-**Response: `200 OK`**
-```json
-{
-  "content": [
-    {
-      "id": "uuid",
-      "name": "Concert: Son Tung M-TP",
-      "venue": "My Dinh National Stadium, Hanoi",
-      "startTime": "2024-06-15T19:00:00Z",
-      "status": "PUBLISHED",
-      "minPrice": 500000,
-      "maxPrice": 5000000,
-      "imageUrl": "https://cdn.seatguard.vn/events/sontung.jpg"
-    }
-  ],
-  "totalElements": 42,
-  "totalPages": 3,
-  "number": 0
-}
-```
-
----
+**Query params:** `page`, `size`, `category`, `search`
 
 ### GET /events/{eventId}
-Get event details with seat map summary.
-
-**Response: `200 OK`**
-```json
-{
-  "id": "uuid",
-  "name": "Concert: Son Tung M-TP",
-  "description": "Live concert at My Dinh Stadium",
-  "venue": "My Dinh National Stadium, Hanoi",
-  "startTime": "2024-06-15T19:00:00Z",
-  "endTime": "2024-06-15T22:00:00Z",
-  "status": "PUBLISHED",
-  "category": "CONCERT",
-  "imageUrl": "https://cdn.seatguard.vn/events/sontung.jpg",
-  "sections": [
-    {
-      "id": "uuid",
-      "name": "VIP",
-      "price": 5000000,
-      "totalSeats": 100,
-      "availableSeats": 67
-    }
-  ],
-  "totalSeats": 5000,
-  "availableSeats": 3200
-}
-```
-
----
-
-### PUT /events/{eventId} 🔒 (Admin)
-Update event details.
-
-**Request:** Same as POST, partial updates allowed.
-
-**Response: `200 OK`** — Updated event object.
-
-**Errors:**
-- `400` — Validation failed
-- `404` — Event not found
-- `409` — Cannot modify published event's seat map
-
----
-
-### DELETE /events/{eventId} 🔒 (Admin)
-Soft-delete an event.
-
-**Response: `204 No Content`**
-
-**Errors:**
-- `404` — Event not found
-- `409` — Event has active bookings
-
----
-
-### POST /events/{eventId}/publish 🔒 (Admin)
-Publish an event, making it visible and bookable.
-
-**Response: `200 OK`**
-```json
-{
-  "id": "uuid",
-  "status": "PUBLISHED",
-  "publishedAt": "2024-01-15T12:00:00Z"
-}
-```
-
-**Errors:**
-- `409` — Event must have at least one section with seats
-- `409` — Event already published
-
----
+Get event details. Public.
 
 ### GET /events/{eventId}/seat-map
-Get the full seat map for an event.
+Get full seat map with availability status. Public.
 
-**Response: `200 OK`**
+**Response (200):**
 ```json
 {
   "eventId": "uuid",
@@ -257,26 +164,13 @@ Get the full seat map for an event.
     {
       "id": "uuid",
       "name": "VIP",
-      "price": 5000000,
-      "rows": [
+      "seats": [
         {
-          "rowLabel": "A",
-          "seats": [
-            {
-              "id": "uuid",
-              "seatNumber": "1",
-              "label": "A-1",
-              "status": "AVAILABLE",
-              "price": 5000000
-            },
-            {
-              "id": "uuid",
-              "seatNumber": "2",
-              "label": "A-2",
-              "status": "HELD",
-              "price": 5000000
-            }
-          ]
+          "id": "uuid",
+          "row": "A",
+          "number": 1,
+          "status": "AVAILABLE",
+          "price": 2500000
         }
       ]
     }
@@ -286,398 +180,159 @@ Get the full seat map for an event.
 
 ---
 
-### POST /events/{eventId}/sections 🔒 (Admin)
-Add a section to an event.
+## Booking Service
 
-**Request:**
-```json
-{
-  "name": "VIP",
-  "description": "Front rows, closest to stage",
-  "price": 5000000,
-  "rowCount": 10,
-  "seatsPerRow": 20
-}
-```
-
-**Response: `201 Created`**
-```json
-{
-  "id": "uuid",
-  "name": "VIP",
-  "price": 5000000,
-  "totalSeats": 200
-}
-```
-
----
-
-### POST /events/{eventId}/sections/{sectionId}/generate-seats 🔒 (Admin)
-Auto-generate seats for a section.
-
-**Request:**
-```json
-{
-  "rowCount": 10,
-  "seatsPerRow": 20,
-  "rowLabels": ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"]
-}
-```
-
-**Response: `200 OK`**
-```json
-{
-  "sectionId": "uuid",
-  "seatsGenerated": 200,
-  "rows": ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"]
-}
-```
-
----
-
-## 3. Booking
-
-### POST /bookings/hold 🔒
-Hold a seat for booking (starts 5-minute payment window).
+### POST /bookings/hold
+Hold a seat. **Requires auth.**
 
 **Request:**
 ```json
 {
   "eventId": "uuid",
   "seatId": "uuid",
-  "idempotencyKey": "client-generated-uuid"
+  "idempotencyKey": "unique-request-id-123"
 }
 ```
 
-**Response: `201 Created`**
+**Response (201):**
 ```json
 {
   "id": "uuid",
   "eventId": "uuid",
   "seatId": "uuid",
-  "seatLabel": "A-1",
-  "sectionName": "VIP",
-  "price": 5000000,
   "status": "PENDING_PAYMENT",
-  "expiresAt": "2024-01-15T10:35:00Z",
-  "createdAt": "2024-01-15T10:30:00Z"
+  "expiresAt": "2026-06-15T19:05:00Z",
+  "createdAt": "2026-06-15T19:00:00Z"
 }
 ```
 
-**Errors:**
-- `400` — Validation failed
-- `404` — Event or seat not found
-- `409` — Seat already held or sold (double-booking prevented)
-- `409` — Duplicate idempotency key
+**Error (409):** Seat already held/sold
+```json
+{
+  "error": "SEAT_NOT_AVAILABLE",
+  "message": "This seat is no longer available"
+}
+```
 
----
-
-### POST /bookings/{bookingId}/pay 🔒
-Process payment for a held seat.
+### POST /bookings/{bookingId}/pay
+Process payment for a held seat. **Requires auth.**
 
 **Request:**
 ```json
 {
   "paymentMethod": "CREDIT_CARD",
-  "idempotencyKey": "client-generated-uuid"
+  "paymentDetails": {
+    "cardNumber": "**** **** **** 1234",
+    "expiryMonth": "12",
+    "expiryYear": "2027"
+  }
 }
 ```
 
-**Response: `200 OK`**
+**Response (200):**
 ```json
 {
   "id": "uuid",
   "status": "CONFIRMED",
-  "ticketId": "uuid",
-  "paidAt": "2024-01-15T10:32:00Z"
+  "paidAt": "2026-06-15T19:02:00Z"
 }
 ```
 
-**Errors:**
-- `404` — Booking not found
-- `409` — Booking not in PENDING_PAYMENT status
-- `409` — Booking expired
-- `402` — Payment failed
+### POST /bookings/{bookingId}/cancel
+Cancel a booking. **Requires auth.**
 
----
-
-### POST /bookings/{bookingId}/cancel 🔒
-Cancel a booking and release the seat.
-
-**Response: `200 OK`**
+**Response (200):**
 ```json
 {
   "id": "uuid",
-  "status": "CANCELLED",
-  "cancelledAt": "2024-01-15T10:33:00Z"
+  "status": "CANCELLED"
 }
 ```
 
-**Errors:**
-- `404` — Booking not found
-- `409` — Booking already confirmed (cannot cancel after payment)
+### GET /bookings/{bookingId}
+Get booking details. **Requires auth.**
+
+### GET /bookings/me
+List current user's bookings. **Requires auth.**
 
 ---
 
-### GET /bookings/{bookingId} 🔒
-Get booking details.
+## Ticket Service
 
-**Response: `200 OK`**
-```json
-{
-  "id": "uuid",
-  "eventId": "uuid",
-  "eventName": "Concert: Son Tung M-TP",
-  "seatId": "uuid",
-  "seatLabel": "A-1",
-  "sectionName": "VIP",
-  "price": 5000000,
-  "status": "CONFIRMED",
-  "expiresAt": null,
-  "paidAt": "2024-01-15T10:32:00Z",
-  "createdAt": "2024-01-15T10:30:00Z"
-}
-```
+### GET /tickets/me
+List current user's tickets. **Requires auth.**
 
----
+### GET /tickets/{ticketId}
+Get ticket details with QR code. **Requires auth.**
 
-### GET /bookings 🔒
-List current user's bookings.
-
-**Query Parameters:**
-- `page` (int, default: 0)
-- `size` (int, default: 20)
-- `status` (string, optional)
-
-**Response: `200 OK`**
-```json
-{
-  "content": [
-    {
-      "id": "uuid",
-      "eventName": "Concert: Son Tung M-TP",
-      "seatLabel": "A-1",
-      "status": "CONFIRMED",
-      "price": 5000000,
-      "createdAt": "2024-01-15T10:30:00Z"
-    }
-  ],
-  "totalElements": 5,
-  "totalPages": 1,
-  "number": 0
-}
-```
-
----
-
-## 4. Ticket
-
-### GET /tickets 🔒
-List current user's tickets.
-
-**Query Parameters:**
-- `page` (int, default: 0)
-- `size` (int, default: 20)
-
-**Response: `200 OK`**
-```json
-{
-  "content": [
-    {
-      "id": "uuid",
-      "eventId": "uuid",
-      "eventName": "Concert: Son Tung M-TP",
-      "seatLabel": "A-1",
-      "sectionName": "VIP",
-      "status": "VALID",
-      "qrCode": "data:image/png;base64,...",
-      "checkedInAt": null
-    }
-  ],
-  "totalElements": 2,
-  "totalPages": 1,
-  "number": 0
-}
-```
-
----
-
-### GET /tickets/{ticketId} 🔒
-Get ticket details with QR code.
-
-**Response: `200 OK`**
+**Response (200):**
 ```json
 {
   "id": "uuid",
   "bookingId": "uuid",
   "eventId": "uuid",
-  "eventName": "Concert: Son Tung M-TP",
-  "eventStartTime": "2024-06-15T19:00:00Z",
-  "venue": "My Dinh National Stadium, Hanoi",
-  "seatLabel": "A-1",
-  "sectionName": "VIP",
+  "seatInfo": "VIP - Row A, Seat 1",
   "status": "VALID",
-  "qrCode": "data:image/png;base64,...",
-  "qrCodeData": "TKT-{uuid}-{hmac_signature}",
-  "checkedInAt": null,
-  "issuedAt": "2024-01-15T10:32:00Z"
+  "qrCode": "base64-encoded-qr-image",
+  "checkInCode": "SG-ABCD1234"
+}
+```
+
+### POST /tickets/{ticketId}/check-in
+Check in by ticket ID. **Requires auth (staff).**
+
+### POST /tickets/check-in/by-code
+Check in by QR/check-in code. **Requires auth (staff).**
+
+**Request:**
+```json
+{
+  "checkInCode": "SG-ABCD1234"
 }
 ```
 
 ---
 
-### POST /tickets/{ticketId}/check-in 🔒 (Staff)
-Check in a ticket at the venue.
+## Notification Service
 
-**Response: `200 OK`**
+### GET /notifications/me
+List user's notifications. **Requires auth.**
+
+### PUT /notifications/{id}/read
+Mark notification as read. **Requires auth.**
+
+### WebSocket /ws/notifications
+Real-time notification push. **Requires auth (JWT in query param).**
+
+**Message format:**
 ```json
 {
-  "id": "uuid",
-  "status": "USED",
-  "checkedInAt": "2024-06-15T18:45:00Z",
-  "eventName": "Concert: Son Tung M-TP",
-  "seatLabel": "A-1"
-}
-```
-
-**Errors:**
-- `404` — Ticket not found
-- `409` — Ticket already used
-- `409` — Ticket cancelled
-
----
-
-### GET /tickets/code/{qrCodeData} 🔒 (Staff)
-Look up ticket by QR code data.
-
-**Response: `200 OK`** — Same as GET /tickets/{ticketId}
-
----
-
-## 5. Notification
-
-### GET /notifications 🔒
-List current user's notifications.
-
-**Query Parameters:**
-- `page` (int, default: 0)
-- `size` (int, default: 20)
-- `unreadOnly` (boolean, default: false)
-
-**Response: `200 OK`**
-```json
-{
-  "content": [
-    {
-      "id": "uuid",
-      "type": "BOOKING_CONFIRMED",
-      "title": "Booking Confirmed",
-      "message": "Your booking for Concert: Son Tung M-TP (Seat A-1) has been confirmed.",
-      "data": {
-        "bookingId": "uuid",
-        "eventId": "uuid"
-      },
-      "read": false,
-      "createdAt": "2024-01-15T10:32:00Z"
-    }
-  ],
-  "totalElements": 10,
-  "totalPages": 1,
-  "number": 0,
-  "unreadCount": 3
+  "type": "BOOKING_CONFIRMED",
+  "title": "Booking Confirmed!",
+  "message": "Your booking for VIP Row A Seat 1 has been confirmed.",
+  "data": { "bookingId": "uuid", "ticketId": "uuid" },
+  "timestamp": "2026-06-15T19:02:00Z"
 }
 ```
 
 ---
 
-### PATCH /notifications/{notificationId}/read 🔒
-Mark a notification as read.
+## Common Response Codes
 
-**Response: `200 OK`**
-```json
-{
-  "id": "uuid",
-  "read": true
-}
-```
+| Code | Meaning |
+|------|---------|
+| 200 | Success |
+| 201 | Created |
+| 400 | Bad Request / Validation Error |
+| 401 | Unauthorized (missing/invalid token) |
+| 403 | Forbidden (insufficient permissions) |
+| 404 | Not Found |
+| 409 | Conflict (e.g., seat already booked) |
+| 429 | Rate Limited |
+| 500 | Internal Server Error |
 
----
+## Rate Limits
 
-### PATCH /notifications/read-all 🔒
-Mark all notifications as read.
-
-**Response: `200 OK`**
-```json
-{
-  "markedCount": 7
-}
-```
-
----
-
-### WebSocket /ws/notifications 🔒
-Real-time notification stream.
-
-**Connection:** `ws://localhost:3001/ws/notifications?token={jwt_token}`
-
-**Server Messages:**
-```json
-{
-  "type": "NOTIFICATION",
-  "payload": {
-    "id": "uuid",
-    "type": "BOOKING_CONFIRMED",
-    "title": "Booking Confirmed",
-    "message": "Your booking for Seat A-1 has been confirmed.",
-    "data": { "bookingId": "uuid" },
-    "createdAt": "2024-01-15T10:32:00Z"
-  }
-}
-```
-
-```json
-{
-  "type": "SEAT_UPDATE",
-  "payload": {
-    "eventId": "uuid",
-    "seatId": "uuid",
-    "status": "SOLD"
-  }
-}
-```
-
----
-
-## Common Response Formats
-
-### Error Response
-```json
-{
-  "timestamp": "2024-01-15T10:30:00Z",
-  "status": 409,
-  "error": "Conflict",
-  "message": "Seat is already held by another booking",
-  "path": "/api/v1/bookings/hold",
-  "traceId": "abc123"
-}
-```
-
-### Pagination
-All list endpoints return paginated responses with:
-- `content` — Array of items
-- `totalElements` — Total count
-- `totalPages` — Total pages
-- `number` — Current page (0-indexed)
-
-## Idempotency
-
-Endpoints marked with payment/booking operations accept an `idempotencyKey` header or body field:
-- Must be a UUID v4
-- Server returns cached response for duplicate keys within 24 hours
-- Prevents duplicate charges on network retries
-
-## Rate Limiting
-
-- **Anonymous:** 100 requests/minute
-- **Authenticated:** 1000 requests/minute
-- **Booking hold:** 10 requests/minute per user
+- Auth endpoints: 10 req/min per IP
+- Booking endpoints: 30 req/min per user
+- Read endpoints: 100 req/min per user
