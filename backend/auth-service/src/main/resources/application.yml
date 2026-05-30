@@ -12,11 +12,29 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: false
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID:}
+            client-secret: ${GOOGLE_CLIENT_SECRET:}
+            scope: email,profile
+            redirect-uri: ${GOOGLE_REDIRECT_URI:http://localhost:8081/oauth2/callback/google}
+        provider:
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
+            token-uri: https://oauth2.googleapis.com/token
+            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
+            user-name-attribute: sub
 
 jwt:
   secret: ${JWT_SECRET:aVeryLongSecretKeyThatIsAtLeast32CharactersLongForHS256!}
   expiration: ${JWT_EXPIRATION:900000}       # 15 minutes in ms
   refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}  # 7 days in ms
+
+oauth2:
+  frontend-url: ${FRONTEND_URL:http://206.189.47.198:3001}
 
 management:
   endpoints:

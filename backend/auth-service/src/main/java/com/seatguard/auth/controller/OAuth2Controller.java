@@ -22,6 +22,18 @@ public class OAuth2Controller {
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
 
+    @Value("${spring.security.oauth2.client.registration.google.client-id}")
+    private String clientId;
+
+    @Value("${spring.security.oauth2.client.registration.google.client-secret}")
+    private String clientSecret;
+
+    @Value("${spring.security.oauth2.client.registration.google.redirect-uri}")
+    private String redirectUri;
+
+    @Value("${spring.security.oauth2.client.registration.google.scope:email,profile}")
+    private String scope;
+
     @Value("${oauth2.frontend-url:http://206.189.47.198:3001}")
     private String frontendUrl;
 
@@ -36,15 +48,8 @@ public class OAuth2Controller {
      */
     @GetMapping("/authorization/google")
     public void authorizeGoogle(HttpServletResponse response) throws IOException {
-        String clientId = System.getenv("GOOGLE_CLIENT_ID");
-        String redirectUri = System.getenv("GOOGLE_REDIRECT_URI");
-
         if (clientId == null || clientId.isBlank()) {
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "GOOGLE_CLIENT_ID not configured");
-            return;
-        }
-        if (redirectUri == null || redirectUri.isBlank()) {
-            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "GOOGLE_REDIRECT_URI not configured");
             return;
         }
 
@@ -52,7 +57,7 @@ public class OAuth2Controller {
                 + "client_id=" + URLEncoder.encode(clientId, StandardCharsets.UTF_8)
                 + "&redirect_uri=" + URLEncoder.encode(redirectUri, StandardCharsets.UTF_8)
                 + "&response_type=code"
-                + "&scope=" + URLEncoder.encode("email profile", StandardCharsets.UTF_8)
+                + "&scope=" + URLEncoder.encode(scope, StandardCharsets.UTF_8)
                 + "&access_type=offline"
                 + "&prompt=consent";
 
@@ -76,10 +81,6 @@ public class OAuth2Controller {
             response.sendRedirect(frontendUrl + "/login?error=missing_code");
             return;
         }
-
-        String clientId = System.getenv("GOOGLE_CLIENT_ID");
-        String clientSecret = System.getenv("GOOGLE_CLIENT_SECRET");
-        String redirectUri = System.getenv("GOOGLE_REDIRECT_URI");
 
         // Step 1: Exchange authorization code for tokens
         String tokenEndpoint = "https://oauth2.googleapis.com/token";
