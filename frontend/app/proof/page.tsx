@@ -1,89 +1,88 @@
 'use client';
 
+const metrics = [
+  { value: '22/22', label: 'API Tests PASS', color: 'text-emerald-400' },
+  { value: '14,374', label: 'k6 Total Requests', color: 'text-blue-400' },
+  { value: '1', label: 'Successful Booking', color: 'text-emerald-400' },
+  { value: '14,364', label: 'Conflicts (409)', color: 'text-red-400' },
+  { value: '0', label: 'DB Duplicates', color: 'text-emerald-400' },
+  { value: '427ms', label: 'p95 Latency', color: 'text-blue-400' },
+  { value: '469/s', label: 'Throughput', color: 'text-blue-400' },
+  { value: '3.8GB', label: 'RAM During k6', color: 'text-yellow-400' },
+  { value: '10/10', label: 'Services Running', color: 'text-emerald-400' },
+  { value: '7/7', label: 'Build PASS', color: 'text-emerald-400' },
+];
+
+const kafkaFlow = [
+  { step: '1', desc: 'User holds seat', detail: 'Redis SET NX EX + DB check' },
+  { step: '2', desc: 'User pays', detail: 'Booking → CONFIRMED' },
+  { step: '3', desc: 'Kafka BOOKING_CONFIRMED', detail: 'Published to booking-events topic' },
+  { step: '4', desc: 'Ticket service consumes', detail: 'Auto-issues ticket with QR code' },
+  { step: '5', desc: 'User checks in', detail: 'Ticket VALID → USED' },
+  { step: '6', desc: 'Duplicate check-in', detail: 'Rejected (400 BAD_REQUEST)' },
+];
+
+const apiTests = [
+  'POST /api/auth/register → 200 (auto-login)',
+  'POST /api/auth/login → 200 + JWT',
+  'GET /api/auth/me → 200 (profile)',
+  'POST /api/events → 201',
+  'POST /api/events/{id}/sections → 201',
+  'POST /api/events/{id}/seats/generate → 200',
+  'POST /api/events/{id}/publish → 200',
+  'GET /api/events/{id}/seat-map → 200',
+  'POST /api/bookings/hold → 201',
+  'POST /api/bookings/hold (dup) → 409',
+  'POST /api/bookings/{id}/pay → 200',
+  'GET /api/tickets/me → 200 (ticket)',
+  'POST /api/tickets/{id}/check-in → 200',
+  'POST /api/tickets/{id}/check-in (dup) → 400',
+  'GET /health (notification) → 200',
+];
+
 export default function ProofPage() {
-  const proofs = [
-    { label: 'Build', value: '7/7 PASS', type: 'success' as const },
-    { label: 'Runtime', value: '10/10 Services', type: 'success' as const },
-    { label: 'API Flow', value: '22/22 PASS', type: 'success' as const },
-    { label: 'k6 Requests', value: '14,374', type: 'default' as const },
-    { label: 'Successful Bookings', value: '1', type: 'success' as const },
-    { label: 'Conflicts (409)', value: '14,364', type: 'error' as const },
-    { label: 'DB Duplicates', value: '0', type: 'success' as const },
-    { label: 'p95 Latency', value: '427ms', type: 'default' as const },
-    { label: 'Throughput', value: '469 req/s', type: 'default' as const },
-    { label: 'RAM During k6', value: '3.8GB', type: 'default' as const },
-    { label: 'Kafka Events', value: 'Working', type: 'success' as const },
-    { label: 'Double-Booking', value: 'PREVENTED', type: 'success' as const },
-  ];
-
-  const kafkaFlow = [
-    { step: '1', desc: 'User holds seat', status: '✅ Redis lock + DB check' },
-    { step: '2', desc: 'User pays', status: '✅ Booking CONFIRMED' },
-    { step: '3', desc: 'Kafka BOOKING_CONFIRMED', status: '✅ Published to topic' },
-    { step: '4', desc: 'Ticket service consumes', status: '✅ Auto-issued ticket' },
-    { step: '5', desc: 'User checks in', status: '✅ Ticket VALID → USED' },
-    { step: '6', desc: 'Duplicate check-in', status: '✅ Rejected (400)' },
-  ];
-
-  const apiTests = [
-    'POST /api/auth/register → 200',
-    'POST /api/auth/login → 200 + JWT',
-    'GET /api/auth/me → 200 (profile)',
-    'POST /api/events → 201',
-    'POST /api/events/{id}/sections → 201',
-    'POST /api/events/{id}/seats/generate → 200',
-    'POST /api/events/{id}/publish → 200',
-    'GET /api/events/{id}/seat-map → 200',
-    'POST /api/bookings/hold → 201',
-    'POST /api/bookings/hold (dup) → 409',
-    'POST /api/bookings/{id}/pay → 200',
-    'GET /api/tickets/me → 200 (ticket)',
-    'POST /api/tickets/{id}/check-in → 200',
-    'POST /api/tickets/{id}/check-in (dup) → 400',
-    'GET /health (notif) → 200',
-  ];
-
   return (
     <div>
-      <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: 8 }}>🛡️ Integration Proof</h1>
-      <p style={{ color: 'var(--text-muted)', marginBottom: 32 }}>
-        Verified results from SeatGuard full-stack integration testing.
-      </p>
+      <h1 className="mb-2 text-2xl font-bold">🛡️ Integration Proof</h1>
+      <p className="mb-8 text-[var(--color-text-muted)]">Verified results from full-stack integration testing.</p>
 
-      {/* Key Metrics */}
-      <section style={{ marginBottom: 48 }}>
-        <h2 className="section-title">Key Metrics</h2>
-        <div className="proof-grid">
-          {proofs.map((p) => (
-            <div key={p.label} className={`proof-card ${p.type}`}>
-              <div className="value">{p.value}</div>
-              <div className="label">{p.label}</div>
+      {/* Metrics */}
+      <section className="mb-12">
+        <h2 className="mb-4 text-xs font-semibold uppercase tracking-widest text-[var(--color-text-muted)]">Key Metrics</h2>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+          {metrics.map(m => (
+            <div key={m.label} className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-4 text-center">
+              <div className={`text-2xl font-bold ${m.color}`}>{m.value}</div>
+              <div className="mt-1 text-[10px] text-[var(--color-text-muted)]">{m.label}</div>
             </div>
           ))}
         </div>
       </section>
 
       {/* Kafka Flow */}
-      <section style={{ marginBottom: 48 }}>
-        <h2 className="section-title">Kafka Event Flow (Verified)</h2>
-        <div className="card">
-          {kafkaFlow.map((step, i) => (
-            <div key={i} style={{ display: 'flex', gap: 16, padding: '12px 0', borderBottom: i < kafkaFlow.length - 1 ? '1px solid var(--border)' : 'none' }}>
-              <span style={{ color: 'var(--accent)', fontWeight: 700, minWidth: 24 }}>{step.step}</span>
-              <span style={{ flex: 1 }}>{step.desc}</span>
-              <span style={{ fontSize: '0.85rem' }}>{step.status}</span>
+      <section className="mb-12">
+        <h2 className="mb-4 text-xs font-semibold uppercase tracking-widest text-[var(--color-text-muted)]">Kafka Event Flow (Verified)</h2>
+        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-5">
+          {kafkaFlow.map((s, i) => (
+            <div key={i} className={`flex items-center gap-4 py-3 ${i < kafkaFlow.length - 1 ? 'border-b border-[var(--color-border)]' : ''}`}>
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-accent)] text-sm font-bold text-white">{s.step}</span>
+              <div className="flex-1">
+                <div className="font-medium">{s.desc}</div>
+                <div className="text-xs text-[var(--color-text-muted)]">{s.detail}</div>
+              </div>
+              <span className="text-emerald-400">✅</span>
             </div>
           ))}
         </div>
       </section>
 
       {/* API Tests */}
-      <section style={{ marginBottom: 48 }}>
-        <h2 className="section-title">API Tests (22/22 PASS)</h2>
-        <div className="card" style={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>
-          {apiTests.map((test, i) => (
-            <div key={i} style={{ padding: '6px 0', borderBottom: i < apiTests.length - 1 ? '1px solid var(--border)' : 'none', color: test.includes('409') || test.includes('400') ? 'var(--warning)' : 'var(--success)' }}>
-              ✅ {test}
+      <section className="mb-12">
+        <h2 className="mb-4 text-xs font-semibold uppercase tracking-widest text-[var(--color-text-muted)]">API Tests (22/22 PASS)</h2>
+        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-5 font-mono text-xs">
+          {apiTests.map((t, i) => (
+            <div key={i} className={`py-2 ${i < apiTests.length - 1 ? 'border-b border-[var(--color-border)]' : ''} ${t.includes('409') || t.includes('400') ? 'text-yellow-400' : 'text-emerald-400'}`}>
+              ✅ {t}
             </div>
           ))}
         </div>
@@ -91,17 +90,15 @@ export default function ProofPage() {
 
       {/* DB Verification */}
       <section>
-        <h2 className="section-title">DB Duplicate Check</h2>
-        <div className="card" style={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>
-          <div style={{ color: 'var(--text-muted)', marginBottom: 8 }}>SQL Query:</div>
-          <div style={{ color: 'var(--accent)', marginBottom: 12 }}>
-            SELECT seat_id, status, COUNT(*) FROM bookings<br />
-            WHERE status IN (&apos;PENDING_PAYMENT&apos;, &apos;CONFIRMED&apos;)<br />
+        <h2 className="mb-4 text-xs font-semibold uppercase tracking-widest text-[var(--color-text-muted)]">DB Duplicate Check</h2>
+        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-5 font-mono text-xs">
+          <div className="mb-2 text-[var(--color-text-muted)]">SQL Verification:</div>
+          <div className="mb-3 text-[var(--color-accent)]">
+            SELECT seat_id, status, COUNT(*) FROM bookings<br/>
+            WHERE status IN (&apos;PENDING_PAYMENT&apos;, &apos;CONFIRMED&apos;)<br/>
             GROUP BY seat_id, status HAVING COUNT(*) &gt; 1;
           </div>
-          <div style={{ color: 'var(--success)', fontWeight: 700 }}>
-            Result: 0 rows — ZERO duplicate bookings confirmed
-          </div>
+          <div className="font-bold text-emerald-400">→ 0 rows — ZERO duplicate bookings confirmed ✅</div>
         </div>
       </section>
     </div>
