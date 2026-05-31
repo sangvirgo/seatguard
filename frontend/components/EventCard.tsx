@@ -39,14 +39,17 @@ export default function EventCard({ id, name, venue, category, status, startTime
 
   return (
     <Link href={`/events/${id}`} className="group no-underline w-full">
-      <div className="glass-card overflow-hidden">
+      <div className="glass-card overflow-hidden hover:shadow-[0_8px_30px_rgba(99,102,241,0.12)]">
         <div className={`relative h-40 bg-gradient-to-br ${gradient} flex items-center justify-center`}>
           {coverImageUrl ? (
-            <img
-              src={coverImageUrl}
-              alt={name}
-              className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            />
+            <>
+              <img
+                src={coverImageUrl}
+                alt={name}
+                className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+            </>
           ) : (
             <span className="text-6xl opacity-60 group-hover:opacity-80 transition-opacity">{icon}</span>
           )}
@@ -71,13 +74,13 @@ export default function EventCard({ id, name, venue, category, status, startTime
             </p>
           )}
           {category && (
-            <span className="mt-3 inline-block rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-gray-400">
+            <span className="mt-3 inline-block rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1 text-xs font-medium text-blue-300">
               {category}
             </span>
           )}
           <div className="mt-4">
-            <span className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity">
-              View Seats →
+            <span className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-400 group-hover:text-blue-300 transition-colors">
+              View Seats <span className="group-hover:translate-x-1 transition-transform">→</span>
             </span>
           </div>
         </div>

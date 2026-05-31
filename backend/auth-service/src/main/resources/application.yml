@@ -34,7 +34,7 @@ jwt:
   refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}  # 7 days in ms
 
 oauth2:
-  frontend-url: ${FRONTEND_URL:http://206.189.47.198:3001}
+  frontend-url: ${FRONTEND_URL:http://localhost:3001}
 
 management:
   endpoints:
