@@ -1,6 +1,42 @@
-frontend/node_modules/
-frontend/package-lock.json
-frontend/.next
+# ─── Dependencies ──────────────────────────────────────
+node_modules/
+**/node_modules/
+package-lock.json
+
+# ─── Build Artifacts ───────────────────────────────────
+target/
+**/target/
+dist/
+**/dist/
+build/
+**/build/
+.next/
+**/.next/
+*.class
+*.jar
+*.war
+
+# ─── Environment / Secrets ─────────────────────────────
 .env
 .env.*
 !.env.example
+
+# ─── Logs ──────────────────────────────────────────────
+logs/
+**/logs/
+*.log
+*.pid
+
+# ─── IDE ───────────────────────────────────────────────
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+
+# ─── OS ────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ─── TypeScript ────────────────────────────────────────
+*.tsbuildinfo
