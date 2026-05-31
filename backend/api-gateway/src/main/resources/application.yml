@@ -9,7 +9,7 @@ spring:
       globalcors:
         cors-configurations:
           '[/**]':
-            allowedOrigins: ${CORS_ALLOWED_ORIGINS:http://localhost:3001}
+            allowedOrigins: ${CORS_ALLOWED_ORIGINS:http://localhost:3001,http://206.189.47.198:3001}
             allowedMethods:
               - GET
               - POST
