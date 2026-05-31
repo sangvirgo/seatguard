@@ -8,7 +8,7 @@ interface EventCardProps {
   category?: string;
   status?: string;
   startTime?: string;
-  image?: string;
+  coverImageUrl?: string;
 }
 
 const categoryGradients: Record<string, string> = {
@@ -27,7 +27,7 @@ const categoryIcons: Record<string, string> = {
   DEFAULT: '🎪',
 };
 
-export default function EventCard({ id, name, venue, category, status, startTime }: EventCardProps) {
+export default function EventCard({ id, name, venue, category, status, startTime, coverImageUrl }: EventCardProps) {
   const icon = categoryIcons[category?.toUpperCase() || ''] || categoryIcons.DEFAULT;
   const gradient = categoryGradients[category?.toUpperCase() || ''] || categoryGradients.DEFAULT;
   const dateStr = startTime
@@ -41,7 +41,15 @@ export default function EventCard({ id, name, venue, category, status, startTime
     <Link href={`/events/${id}`} className="group no-underline w-full max-w-sm">
       <div className="glass-card overflow-hidden">
         <div className={`relative h-40 bg-gradient-to-br ${gradient} flex items-center justify-center`}>
-          <span className="text-6xl opacity-60 group-hover:opacity-80 transition-opacity">{icon}</span>
+          {coverImageUrl ? (
+            <img
+              src={coverImageUrl}
+              alt={name}
+              className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+          ) : (
+            <span className="text-6xl opacity-60 group-hover:opacity-80 transition-opacity">{icon}</span>
+          )}
           {status && (
             <span className={`badge-status ${status} absolute top-3 right-3`}>
               {status}

@@ -5,7 +5,7 @@ services:
     container_name: seatguard-postgres
     environment:
       POSTGRES_USER: seatguard
-      POSTGRES_PASSWORD: seatguard_dev_2026
+      POSTGRES_PASSWORD: CHANGE_ME
       POSTGRES_DB: seatguard
     ports:
       - "5432:5432"

@@ -27,6 +27,12 @@ spring:
           predicates:
             - Path=/api/auth/**
 
+        # Auth Service - OAuth2
+        - id: auth-service-oauth
+          uri: http://auth-service:8081
+          predicates:
+            - Path=/oauth2/**
+
         # Event Service
         - id: event-service
           uri: http://event-service:8082
@@ -38,6 +44,12 @@ spring:
           uri: http://booking-service:8083
           predicates:
             - Path=/api/bookings/**
+
+        # Payment Service (booking-service)
+        - id: payment-service
+          uri: http://booking-service:8083
+          predicates:
+            - Path=/api/payments/**
 
         # Ticket Service
         - id: ticket-service

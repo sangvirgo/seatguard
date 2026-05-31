@@ -39,6 +39,9 @@ public class Event {
     @Column(name = "cover_image_url", length = 1000)
     private String coverImageUrl;
 
+    @Column(name = "cover_image_public_id", length = 500)
+    private String coverImagePublicId;
+
     @Column(name = "created_by")
     private UUID createdBy;
 
@@ -89,6 +92,9 @@ public class Event {
 
     public String getCoverImageUrl() { return coverImageUrl; }
     public void setCoverImageUrl(String coverImageUrl) { this.coverImageUrl = coverImageUrl; }
+
+    public String getCoverImagePublicId() { return coverImagePublicId; }
+    public void setCoverImagePublicId(String coverImagePublicId) { this.coverImagePublicId = coverImagePublicId; }
 
     public UUID getCreatedBy() { return createdBy; }
     public void setCreatedBy(UUID createdBy) { this.createdBy = createdBy; }

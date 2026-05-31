@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { getEvent, getSeatMap, holdSeat, payBooking, isLoggedIn } from '../../../lib/api';
+import { getEvent, getSeatMap, holdSeat, createPayment, confirmMockPayment, isLoggedIn } from '../../../lib/api';
 import SeatMap from '../../../components/SeatMap';
 import StatusBadge from '../../../components/StatusBadge';
 import LoadingState from '../../../components/LoadingState';
@@ -22,6 +22,7 @@ export default function EventDetailPage() {
   const [bookingId, setBookingId] = useState<string | null>(null);
   const [confirmed, setConfirmed] = useState(false);
   const [paying, setPaying] = useState(false);
+  const [paymentId, setPaymentId] = useState<string | null>(null);
 
   useEffect(() => {
     if (eventId) {
@@ -51,7 +52,7 @@ export default function EventDetailPage() {
     if (res.ok) {
       const bid = res.data.data?.id || res.data.id;
       setBookingId(bid);
-      setMsg(`Seat held! Booking: ${bid.slice(0, 8)}...`);
+      setMsg('Seat held! Booking: ' + bid.slice(0, 8) + '...');
       setMsgType('success');
       setSelected(null);
       setSelectedSeatInfo(null);
@@ -72,13 +73,29 @@ export default function EventDetailPage() {
   async function handlePay() {
     if (!bookingId) return;
     setPaying(true); setMsg('');
-    const res = await payBooking(bookingId);
+    const res = await createPayment(bookingId, 'MOCK');
+    if (res.ok) {
+      const data = res.data.data || res.data;
+      setPaymentId(data.id);
+      setMsg('Demo payment created. Click to confirm.');
+      setMsgType('success');
+    } else {
+      setMsg('Payment failed: ' + (res.data?.message || 'Unknown error'));
+      setMsgType('error');
+    }
+    setPaying(false);
+  }
+
+  async function handleMockConfirm() {
+    if (!paymentId) return;
+    setPaying(true); setMsg('');
+    const res = await confirmMockPayment(paymentId);
     if (res.ok) {
       setConfirmed(true);
       setMsg('Payment confirmed! Your ticket is being issued...');
       setMsgType('success');
     } else {
-      setMsg('Payment failed. Please try again.');
+      setMsg('Confirmation failed: ' + (res.data?.message || 'Unknown error'));
       setMsgType('error');
     }
     setPaying(false);
@@ -92,6 +109,11 @@ export default function EventDetailPage() {
       <section className="relative mb-10 pb-6 pt-4 overflow-hidden">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[250px] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none"></div>
         <div className="container-main relative z-10">
+          {event.coverImageUrl && (
+            <div className="mb-6 rounded-xl overflow-hidden">
+              <img src={event.coverImageUrl} alt={event.name} className="w-full h-64 object-cover" />
+            </div>
+          )}
           <div className="flex items-start justify-between flex-wrap gap-4">
             <div>
               <div className="mb-2 flex items-center gap-3">
@@ -118,7 +140,7 @@ export default function EventDetailPage() {
       <div className="container-main">
         {/* Messages */}
         {msg && (
-          <div className={`mb-6 ${msgType === 'error' ? 'toast-error' : 'toast-success'}`}>
+          <div className={'mb-6 ' + (msgType === 'error' ? 'toast-error' : 'toast-success')}>
             {msg}
             {confirmed && (
               <button onClick={() => router.push('/tickets')} className="ml-4 text-blue-400 underline">
@@ -145,7 +167,7 @@ export default function EventDetailPage() {
           </div>
         ) : (
           <div className="grid gap-8 lg:grid-cols-5">
-            {/* Seat Map - 3 columns (60%) */}
+            {/* Seat Map */}
             <div className="lg:col-span-3">
               {!seatMap ? (
                 <LoadingState message="Loading seat map..." />
@@ -158,7 +180,7 @@ export default function EventDetailPage() {
               )}
             </div>
 
-            {/* Sticky Booking Summary - 2 columns (40%) */}
+            {/* Booking Summary */}
             <div className="lg:col-span-2">
               <div className="lg:sticky lg:top-24 glass-card p-6">
                 <h3 className="text-lg font-semibold text-white mb-4">Booking Summary</h3>
@@ -193,13 +215,28 @@ export default function EventDetailPage() {
                     <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 p-3 text-sm text-emerald-400">
                       ✅ Seat held! Complete payment to confirm.
                     </div>
-                    <button
-                      onClick={handlePay}
-                      disabled={paying}
-                      className="btn-glow w-full !bg-gradient-to-r !from-emerald-600 !to-emerald-500 disabled:opacity-50"
-                    >
-                      {paying ? 'Processing...' : '💳 Pay Now'}
-                    </button>
+
+                    {!paymentId ? (
+                      <>
+                        <p className="text-xs text-gray-400 font-medium mb-2">Demo Payment</p>
+                        <p className="text-sm text-gray-500 mb-3">Use demo payment to complete this booking.</p>
+                        <button
+                          onClick={handlePay}
+                          disabled={paying}
+                          className="btn-glow w-full !bg-gradient-to-r !from-emerald-600 !to-emerald-500 disabled:opacity-50"
+                        >
+                          {paying ? 'Processing...' : '💳 Pay Now'}
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        onClick={handleMockConfirm}
+                        disabled={paying}
+                        className="btn-glow w-full !bg-gradient-to-r !from-emerald-600 !to-emerald-500 disabled:opacity-50"
+                      >
+                        {paying ? 'Confirming...' : '🧪 Simulate Payment Success'}
+                      </button>
+                    )}
                   </div>
                 ) : (
                   <button

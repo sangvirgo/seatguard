@@ -109,6 +109,7 @@ export default function HomePage() {
                   category={e.category}
                   status={e.status}
                   startTime={e.startTime}
+                  coverImageUrl={e.coverImageUrl}
                 />
               ))}
             </div>

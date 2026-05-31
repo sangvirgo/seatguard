@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.io.IOException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,13 +25,16 @@ public class EventService {
     private final EventRepository eventRepository;
     private final SectionRepository sectionRepository;
     private final SeatRepository seatRepository;
+    private final CloudinaryService cloudinaryService;
 
     public EventService(EventRepository eventRepository,
                         SectionRepository sectionRepository,
-                        SeatRepository seatRepository) {
+                        SeatRepository seatRepository,
+                        CloudinaryService cloudinaryService) {
         this.eventRepository = eventRepository;
         this.sectionRepository = sectionRepository;
         this.seatRepository = seatRepository;
+        this.cloudinaryService = cloudinaryService;
     }
 
     // ─── Event CRUD ──────────────────────────────────────
@@ -202,5 +206,38 @@ public class EventService {
             }
         }
         return labels;
+    }
+
+    // ─── Image Management ────────────────────────────────
+
+    public EventResponse updateEventCoverImage(UUID eventId, String imageUrl, String publicId) throws IOException {
+        Event event = getEventOrThrow(eventId);
+
+        // Delete old image from Cloudinary if exists
+        if (event.getCoverImagePublicId() != null) {
+            try {
+                cloudinaryService.deleteImage(event.getCoverImagePublicId());
+            } catch (Exception e) {
+                // Log but don't fail - old image might already be deleted
+            }
+        }
+
+        event.setCoverImageUrl(imageUrl);
+        event.setCoverImagePublicId(publicId);
+        Event saved = eventRepository.save(event);
+        return EventResponse.from(saved);
+    }
+
+    public EventResponse removeEventCoverImage(UUID eventId) throws IOException {
+        Event event = getEventOrThrow(eventId);
+
+        if (event.getCoverImagePublicId() != null) {
+            cloudinaryService.deleteImage(event.getCoverImagePublicId());
+        }
+
+        event.setCoverImageUrl(null);
+        event.setCoverImagePublicId(null);
+        Event saved = eventRepository.save(event);
+        return EventResponse.from(saved);
     }
 }

@@ -5,7 +5,7 @@ services:
     container_name: seatguard-postgres
     environment:
       POSTGRES_USER: seatguard
-      POSTGRES_PASSWORD: seatguard_dev_2026
+      POSTGRES_PASSWORD: CHANGE_ME
       POSTGRES_DB: seatguard
     ports:
       - "5432:5432"
@@ -87,15 +87,22 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    env_file:
+      - ../.env
     environment:
       DB_HOST: postgres
       DB_PORT: "5432"
       DB_USERNAME: seatguard
-      DB_PASSWORD: seatguard_dev_2026
+      DB_PASSWORD: CHANGE_ME
       DB_NAME: seatguard_auth
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/seatguard_auth
       SPRING_DATASOURCE_USERNAME: seatguard
-      SPRING_DATASOURCE_PASSWORD: seatguard_dev_2026
+      SPRING_DATASOURCE_PASSWORD: CHANGE_ME
+      JWT_SECRET: ${JWT_SECRET}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI}
+      ADMIN_EMAILS: ${ADMIN_EMAILS}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
       interval: 15s
@@ -113,10 +120,17 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    env_file:
+      - ../.env
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/seatguard_event
       SPRING_DATASOURCE_USERNAME: seatguard
-      SPRING_DATASOURCE_PASSWORD: seatguard_dev_2026
+      SPRING_DATASOURCE_PASSWORD: CHANGE_ME
+      JWT_SECRET: ${JWT_SECRET}
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
+      CLOUDINARY_SECURE: ${CLOUDINARY_SECURE}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
       interval: 15s
@@ -138,14 +152,30 @@ services:
         condition: service_healthy
       kafka:
         condition: service_healthy
+    env_file:
+      - ../.env
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/seatguard_booking
       SPRING_DATASOURCE_USERNAME: seatguard
-      SPRING_DATASOURCE_PASSWORD: seatguard_dev_2026
+      SPRING_DATASOURCE_PASSWORD: CHANGE_ME
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: "6379"
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      JWT_SECRET: ${JWT_SECRET}
+      MOMO_ENABLED: ${MOMO_ENABLED}
+      MOMO_PARTNER_CODE: ${MOMO_PARTNER_CODE}
+      MOMO_ACCESS_KEY: ${MOMO_ACCESS_KEY}
+      MOMO_SECRET_KEY: ${MOMO_SECRET_KEY}
+      MOMO_ENDPOINT: ${MOMO_ENDPOINT}
+      MOMO_RETURN_URL: ${MOMO_RETURN_URL}
+      MOMO_NOTIFY_URL: ${MOMO_NOTIFY_URL}
+      VNPAY_ENABLED: ${VNPAY_ENABLED}
+      VNPAY_TMN_CODE: ${VNPAY_TMN_CODE}
+      VNPAY_HASH_SECRET: ${VNPAY_HASH_SECRET}
+      VNPAY_PAYMENT_URL: ${VNPAY_PAYMENT_URL}
+      VNPAY_RETURN_URL: ${VNPAY_RETURN_URL}
+      VNPAY_IPN_URL: ${VNPAY_IPN_URL}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8083/actuator/health"]
       interval: 15s
@@ -165,12 +195,15 @@ services:
         condition: service_healthy
       kafka:
         condition: service_healthy
+    env_file:
+      - ../.env
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/seatguard_ticket
       SPRING_DATASOURCE_USERNAME: seatguard
-      SPRING_DATASOURCE_PASSWORD: seatguard_dev_2026
+      SPRING_DATASOURCE_PASSWORD: CHANGE_ME
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      JWT_SECRET: ${JWT_SECRET}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8084/actuator/health"]
       interval: 15s
@@ -195,11 +228,11 @@ services:
       DB_HOST: postgres
       DB_PORT: "5432"
       DB_USERNAME: seatguard
-      DB_PASSWORD: seatguard_dev_2026
+      DB_PASSWORD: CHANGE_ME
       DB_NAME: seatguard_notification
       KAFKA_BROKERS: kafka:9092
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
       interval: 15s
       timeout: 5s
       retries: 5

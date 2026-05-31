@@ -9,6 +9,10 @@ const nextConfig = {
         source: '/api/:path*',
         destination: `${gatewayUrl}/api/:path*`,
       },
+      {
+        source: '/oauth2/:path*',
+        destination: `${gatewayUrl}/oauth2/:path*`,
+      },
     ];
   },
 };

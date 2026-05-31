@@ -14,6 +14,7 @@ public record EventResponse(
     Instant startTime,
     Instant endTime,
     EventStatus status,
+    String coverImageUrl,
     Instant createdAt
 ) {
     public static EventResponse from(Event event) {
@@ -26,6 +27,7 @@ public record EventResponse(
             event.getStartTime(),
             event.getEndTime(),
             event.getStatus(),
+            event.getCoverImageUrl(),
             event.getCreatedAt()
         );
     }

@@ -1,6 +1,7 @@
 package com.seatguard.event.controller;
 
 import com.seatguard.event.dto.*;
+import com.seatguard.event.service.CloudinaryService;
 import com.seatguard.event.service.EventService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -8,7 +9,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
@@ -18,24 +23,27 @@ import java.util.UUID;
 public class EventController {
 
     private final EventService eventService;
+    private final CloudinaryService cloudinaryService;
 
-    public EventController(EventService eventService) {
+    public EventController(EventService eventService, CloudinaryService cloudinaryService) {
         this.eventService = eventService;
+        this.cloudinaryService = cloudinaryService;
     }
 
     // ─── Event CRUD ──────────────────────────────────────
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<EventResponse>> createEvent(
             @Valid @RequestBody CreateEventRequest request) {
-        // TODO: get createdBy from JWT token in header
-        UUID createdBy = UUID.fromString("00000000-0000-0000-0000-000000000000");
+        UUID createdBy = getCurrentUserId();
         EventResponse response = eventService.createEvent(request, createdBy);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.ok("Event created", response));
     }
 
     @PutMapping("/{eventId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<EventResponse>> updateEvent(
             @PathVariable UUID eventId,
             @Valid @RequestBody CreateEventRequest request) {
@@ -61,14 +69,45 @@ public class EventController {
     }
 
     @PostMapping("/{eventId}/publish")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<EventResponse>> publishEvent(@PathVariable UUID eventId) {
         EventResponse response = eventService.publishEvent(eventId);
         return ResponseEntity.ok(ApiResponse.ok("Event published", response));
     }
 
+    @PostMapping("/{eventId}/image")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<EventResponse>> uploadEventImage(
+            @PathVariable UUID eventId,
+            @RequestParam("image") MultipartFile image) {
+        try {
+            CloudinaryService.UploadResult uploadResult = cloudinaryService.uploadImage(image);
+            EventResponse response = eventService.updateEventCoverImage(eventId, uploadResult.url(), uploadResult.publicId());
+            return ResponseEntity.ok(ApiResponse.ok("Image uploaded", response));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Image upload failed: " + e.getMessage()));
+        }
+    }
+
+    @DeleteMapping("/{eventId}/image")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<EventResponse>> removeEventImage(@PathVariable UUID eventId) {
+        try {
+            EventResponse response = eventService.removeEventCoverImage(eventId);
+            return ResponseEntity.ok(ApiResponse.ok("Image removed", response));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Failed to remove image: " + e.getMessage()));
+        }
+    }
+
     // ─── Section Management ──────────────────────────────
 
     @PostMapping("/{eventId}/sections")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<SectionResponse>> addSection(
             @PathVariable UUID eventId,
             @Valid @RequestBody CreateSectionRequest request) {
@@ -87,6 +126,7 @@ public class EventController {
     // ─── Seat Management ─────────────────────────────────
 
     @PostMapping("/{eventId}/seats/generate")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<List<SeatMapResponse.SeatInfo>>> generateSeats(
             @PathVariable UUID eventId,
             @Valid @RequestBody GenerateSeatsRequest request) {
@@ -98,5 +138,15 @@ public class EventController {
     public ResponseEntity<ApiResponse<SeatMapResponse>> getSeatMap(@PathVariable UUID eventId) {
         SeatMapResponse seatMap = eventService.getSeatMap(eventId);
         return ResponseEntity.ok(ApiResponse.ok(seatMap));
+    }
+
+    // ─── Helper ──────────────────────────────────────────
+
+    private UUID getCurrentUserId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getPrincipal() != null) {
+            return UUID.fromString(auth.getPrincipal().toString());
+        }
+        throw new RuntimeException("User not authenticated");
     }
 }

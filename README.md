@@ -1,170 +1,265 @@
-# SeatGuard
+# SeatGuard — High-Concurrency Ticket Booking Platform
 
-High-Concurrency Ticket Booking Platform
+A full-stack ticket booking system that **prevents double-booking under concurrent traffic** using Redis distributed locks and PostgreSQL unique constraints. Built to demonstrate real concurrency control, not just claim it.
 
-## Overview
+---
 
-SeatGuard is a production-grade event/concert ticket booking platform designed to handle high-concurrency scenarios. The system ensures **zero double-booking** through a combination of Redis distributed locks and PostgreSQL unique constraints.
+## Table of Contents
 
-## Key Features
+- [Tech Stack](#tech-stack)
+- [Architecture](#architecture)
+- [How It Works — User Flow](#how-it-works--user-flow)
+- [Admin Features](#admin-features)
+- [Security](#security)
+- [Payment](#payment)
+- [Concurrency Proof](#concurrency-proof)
+- [Quick Start](#quick-start)
+- [Environment Setup](#environment-setup)
+- [Documentation](#documentation)
+- [Screenshots](#screenshots)
+- [Known Limitations](#known-limitations)
+- [License](#license)
 
-- **Event & Seat Map Management** — Create events, define sections/seats, publish
-- **Real-Time Seat Holding** — Redis-based TTL locks for seat reservation
-- **Payment Flow** — Mock payment integration with confirmation/expiry
-- **QR Ticket Generation** — Unique QR codes per ticket for check-in
-- **Concurrent Safety** — Tested with 1000+ simultaneous booking attempts
-- **Push Notifications** — WebSocket + Kafka-based event notifications
+---
 
 ## Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
+| Frontend | React + Next.js 14 |
+| API Gateway | Spring Cloud Gateway |
 | Backend Services | Java 21 + Spring Boot 3.x |
 | Notification Service | Node.js + NestJS |
-| Frontend | React + Next.js 14 |
 | Database | PostgreSQL 16 |
-| Cache / Lock | Redis 7 |
+| Cache / Distributed Lock | Redis 7 |
 | Message Broker | Apache Kafka 3.7 (KRaft mode) |
-| API Gateway | Spring Cloud Gateway |
+| Image Upload | Cloudinary |
+| Authentication | JWT + Google OAuth2 |
 | Load Testing | k6 |
 | Containerization | Docker Compose |
 
+---
+
 ## Architecture
 
+```mermaid
+graph TB
+    Browser[Browser] --> FE[Frontend<br/>Next.js :3001]
+    FE --> GW[API Gateway<br/>Spring Cloud :8080]
+    GW --> AS[Auth Service<br/>Spring Boot :8081]
+    GW --> ES[Event Service<br/>Spring Boot :8082]
+    GW --> BS[Booking Service<br/>Spring Boot :8083]
+    GW --> TS[Ticket Service<br/>Spring Boot :8084]
+    GW --> NS[Notification Service<br/>NestJS :3000]
+    BS --> Redis[(Redis<br/>Distributed Lock)]
+    BS --> Kafka[[Apache Kafka<br/>Event Bus]]
+    TS --> Kafka
+    NS --> Kafka
+    AS --> PG[(PostgreSQL)]
+    ES --> PG
+    BS --> PG
+    TS --> PG
+    NS --> PG
+    ES --> Cloudinary[Cloudinary<br/>Image Upload]
+    AS --> Google[Google OAuth2]
 ```
-┌─────────────┐     ┌──────────────┐     ┌─────────────────┐
-│   Frontend   │────▶│ API Gateway  │────▶│  Auth Service   │
-│  (Next.js)   │     │ (Spring Cloud)│     │  (Spring Boot)  │
-└─────────────┘     └──────┬───────┘     └─────────────────┘
-                           │
-            ┌──────────────┼──────────────┐
-            ▼              ▼              ▼
-     ┌─────────────┐ ┌──────────┐ ┌──────────────┐
-     │Event Service│ │ Booking  │ │Ticket Service│
-     │(Spring Boot)│ │ Service  │ │(Spring Boot) │
-     └─────────────┘ └──────────┘ └──────────────┘
-                           │
-                     ┌─────┴─────┐
-                     ▼           ▼
-                ┌────────┐  ┌─────────┐
-                │ Redis  │  │ Kafka   │
-                │ (Lock) │  │ (Event) │
-                └────────┘  └────┬────┘
-                                 ▼
-                        ┌─────────────────┐
-                        │ Notification Svc│
-                        │   (NestJS)      │
-                        └─────────────────┘
-```
-
-## Services
 
 | Service | Port | Responsibility |
 |---------|------|---------------|
 | api-gateway | 8080 | Routing, rate limiting, auth filter |
-| auth-service | 8081 | Register, login, JWT, refresh tokens |
-| event-service | 8082 | Events, sections, seats, seat map |
-| booking-service | 8083 | Hold seat, payment, cancellation |
-| ticket-service | 8084 | Ticket issuance, QR, check-in |
+| auth-service | 8081 | Register, login, JWT, Google OAuth2, refresh tokens |
+| event-service | 8082 | Events, sections, seats, seat map, image upload |
+| booking-service | 8083 | Seat hold (Redis lock), payment, cancellation |
+| ticket-service | 8084 | Ticket issuance, QR code, check-in |
 | notification-service | 3000 | WebSocket push, Kafka consumer |
 | frontend | 3001 | Next.js web app |
 
+---
+
+## How It Works — User Flow
+
+1. **Browse** — View upcoming events and seat maps
+2. **Login** — Register or sign in via Google OAuth2
+3. **Select Seat** — Pick an available seat from the interactive map
+4. **Hold** — Seat is locked for 5 minutes via Redis `SET NX EX` (TTL-based)
+5. **Pay** — Complete mock payment to confirm the booking
+6. **Ticket** — QR-coded ticket is issued asynchronously via Kafka
+7. **Check-in** — Scan QR at the door; duplicate check-in is rejected
+
+---
+
+## Admin Features
+
+- **Event CRUD** — Create, update, and delete events with full seat map configuration
+- **Image Upload** — Event cover images via Cloudinary (direct upload, no local storage)
+- **RBAC Enforcement** — Admin-only endpoints protected at the gateway level; admin emails configured via `ADMIN_EMAILS` env var
+
+---
+
+## Security
+
+- **JWT Authentication** — Short-lived access tokens + long-lived refresh tokens
+- **Google OAuth2** — Social login as an alternative to password-based auth
+- **Admin RBAC** — Role-based access control enforced on admin endpoints
+- **Gateway-Only Architecture** — All service-to-service auth flows through the API gateway; internal services are not publicly exposed
+- **Secrets in `.env` Only** — No hardcoded credentials; all secrets loaded from environment variables
+
+---
+
+## Payment
+
+| Provider | Status | Notes |
+|----------|--------|-------|
+| Mock Payment | ✅ Active | Simulates success/failure for demo purposes |
+> **Note:** The active demo uses the **Mock Payment** provider only. MoMo and VNPay backend adapters exist as sandbox-ready extension points but are hidden from the public demo UI.
+
+---
+
+## Concurrency Proof
+
+The whole point of this project. Here's what happens when 100 virtual users try to book the **same seat** at the same time:
+
+**Test:** `k6 run tests/k6/double-booking.js` — 100 VUs, 30s ramp
+
+| Metric | Result |
+|--------|--------|
+| Total requests | 14,374 |
+| Successful bookings | **1** |
+| Conflict (409) | 14,364 |
+| Unexpected errors | **0** |
+| p95 latency | 427ms |
+| p99 latency | ~500ms |
+
+**DB verification:**
+
+```sql
+SELECT seat_id, status, COUNT(*) FROM bookings
+WHERE status IN ('PENDING_PAYMENT', 'CONFIRMED')
+GROUP BY seat_id, status HAVING COUNT(*) > 1;
+-- Result: 0 rows — NO duplicate bookings
+```
+
+**Protection layers:**
+
+1. **Redis `SET NX EX`** — First acquirer wins; others get rejected immediately
+2. **PostgreSQL unique constraint** — Active booking per seat enforced at the DB level
+3. **Idempotency key** — Same key returns existing booking, not a new one
+4. **Application-level check** — `DuplicateBookingException` thrown before any write
+
+---
+
 ## Quick Start
 
-### Option 1: Docker Full Stack (Recommended)
+### Docker (Recommended)
 
 ```bash
-# Build and start everything (10 services)
-bash scripts/docker-full-up.sh
+# Start everything (10 containers)
+docker compose -f infra/docker-compose.full.yml up -d
 
-# Open frontend
+# Open the app
 open http://localhost:3001
 
-# Run API smoke test
+# Run smoke test
 bash tests/smoke/full-flow.sh
 
-# Run k6 double-booking test
+# Run concurrency test
 bash scripts/run-k6-double-booking.sh
 
 # Stop everything
-bash scripts/docker-full-down.sh
+docker compose -f infra/docker-compose.full.yml down
 ```
 
-### Option 2: Local Development
+### Local Development
 
 ```bash
-# Start infrastructure
+# Infrastructure only
 docker compose -f infra/docker-compose.yml up -d
 
-# Start backend services (each in separate terminal)
+# Backend services (separate terminals)
 cd backend/api-gateway && mvn spring-boot:run
 cd backend/auth-service && mvn spring-boot:run
 cd backend/event-service && mvn spring-boot:run
 cd backend/booking-service && mvn spring-boot:run
 cd backend/ticket-service && mvn spring-boot:run
 
-# Start notification service
-cd notification-service && npm install && npm run start
+# Notification service
+cd notification-service && npm install && npm run start:dev
 
-# Start frontend
+# Frontend
 cd frontend && npm install && npm run dev
-
-# Run API smoke test
-bash tests/smoke/full-flow.sh
 ```
 
-# Start frontend
-cd frontend && npm run dev
-```
+---
 
-## Double-Booking Protection
+## Environment Setup
 
-SeatGuard uses a **dual-layer protection** strategy:
-
-1. **Redis SET NX EX** — Distributed lock with TTL (e.g., 5 minutes)
-2. **PostgreSQL UNIQUE constraint** — Active booking per seat enforcement
-3. **Idempotency Key** — Prevents duplicate booking requests
-4. **Transaction Boundary** — Atomic DB operations
-
-Load test: `k6 run tests/k6/double-booking.js` — 1000 VUs, 1 seat, expect exactly 1 success.
-
-## Frontend Demo
-
-A clean Next.js demo UI is available at `http://localhost:3001`:
-
-| Page | Path | Description |
-|------|------|-------------|
-| Home | `/` | Project overview + proof cards |
-| Events | `/events` | Browse events, create demo event |
-| Event Detail | `/events/[id]` | Seat map, select & hold seat |
-| Tickets | `/tickets` | Pay, view ticket, check-in |
-| Login | `/login` | Register/Login demo user |
-| Proof | `/proof` | Integration test evidence |
-
-### Run Frontend
 ```bash
-cd frontend && npm install && npm run dev
-# Open http://localhost:3001
+# Copy the example file
+cp .env.example .env
+
+# Edit .env and fill in your values
+# All CHANGE_ME placeholders must be replaced before running
 ```
 
-### Demo Flow
-1. Go to `/login` → Register a user
-2. Go to `/events` → Create demo event
-3. Click event → Select a seat → Hold seat
-4. Go to `/tickets` → Pay → Ticket issued via Kafka
-5. Check in → Duplicate check-in rejected
-6. Go to `/proof` → View all evidence
+**Required variables:**
+
+| Variable | Description |
+|----------|-------------|
+| `POSTGRES_PASSWORD` | Database password |
+| `JWT_SECRET` | Min 32 characters, random string |
+| `GOOGLE_CLIENT_ID` | Google OAuth2 client ID |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth2 client secret |
+| `CLOUDINARY_CLOUD_NAME` | Cloudinary cloud name |
+| `CLOUDINARY_API_KEY` | Cloudinary API key |
+| `CLOUDINARY_API_SECRET` | Cloudinary API secret |
+
+> **Never commit `.env` to version control.** The `.env.example` file exists for this reason.
+
+---
 
 ## Documentation
 
-- [Architecture](docs/architecture.md)
-- [API Contract](docs/api-contract.md)
-- [Database Design](docs/database-design.md)
-- [Event Flow](docs/event-flow.md)
-- [Testing Strategy](docs/testing-strategy.md)
-- [Roadmap](docs/roadmap.md)
-- [Agent Workflow](AGENTS.md)
+| Document | Description |
+|----------|-------------|
+| [docs/DEMO.md](docs/DEMO.md) | Step-by-step demo walkthrough |
+| [docs/DEMO_CHECKLIST.md](docs/DEMO_CHECKLIST.md) | Pre-demo verification checklist |
+| [reports/final-report-oauth-rbac.md](reports/final-report-oauth-rbac.md) | OAuth2 + RBAC integration report |
+| [docs/architecture.md](docs/architecture.md) | Detailed architecture documentation |
+| [docs/api-contract.md](docs/api-contract.md) | API endpoints and contracts |
+| [docs/database-design.md](docs/database-design.md) | Database schema and design |
+| [docs/event-flow.md](docs/event-flow.md) | Event-driven flow documentation |
+| [docs/testing-strategy.md](docs/testing-strategy.md) | Testing approach and strategy |
+| [docs/roadmap.md](docs/roadmap.md) | Future improvements and roadmap |
+
+---
+
+## Screenshots
+
+> *Screenshots to be added — run the demo locally and capture:*
+>
+> - Event listing page
+> - Interactive seat map
+> - Booking flow (hold → pay → ticket)
+> - Admin event management
+> - k6 test results
+> - QR ticket and check-in
+
+---
+
+## Known Limitations
+
+Being honest about what this project is and isn't:
+
+- **MoMo/VNPay are backend-only** — Provider adapters exist as future sandbox extension, hidden from the demo UI. Real integration requires merchant credentials + signing/IPN verification.
+- **Real secrets are not committed** — `.env.example` has placeholders only. You need your own credentials.
+- **Notification service is demo-grade** — WebSocket push works, but no retry logic, no dead-letter queue, no production error handling.
+- **No CI/CD pipeline** — No GitHub Actions, no automated tests on push, no deployment automation.
+- **No production deployment** — This runs on Docker Compose locally. No Kubernetes, no cloud hosting, no monitoring stack.
+
+This is a portfolio project built to demonstrate concurrency control and system design skills, not a production-ready SaaS.
+
+---
 
 ## License
 
-Private — All rights reserved.
+Portfolio project — built for learning and demonstration purposes.
