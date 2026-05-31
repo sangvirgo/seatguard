@@ -238,14 +238,21 @@ cp .env.example .env
 
 ## Screenshots
 
-> *Screenshots to be added — run the demo locally and capture:*
->
-> - Event listing page
-> - Interactive seat map
-> - Booking flow (hold → pay → ticket)
-> - Admin event management
-> - k6 test results
-> - QR ticket and check-in
+### Homepage
+![Homepage](screenshots/homepage.png)
+Hero section with gradient text, centered layout, upcoming event cards with category badges and venue info.
+
+### Events
+![Events](screenshots/events.png)
+Event listing with search, category filters, and responsive card grid.
+
+### Login
+![Login](screenshots/login.png)
+Clean centered login form with Google OAuth2 option.
+
+### Engineering Proof
+![Proof](screenshots/proof.png)
+Live technical evidence: k6 load test results, service health, concurrency metrics.
 
 ---
 
