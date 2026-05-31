@@ -223,13 +223,16 @@ cp .env.example .env
 |----------|-------------|
 | [docs/DEMO.md](docs/DEMO.md) | Step-by-step demo walkthrough |
 | [docs/DEMO_CHECKLIST.md](docs/DEMO_CHECKLIST.md) | Pre-demo verification checklist |
-| [reports/final-report-oauth-rbac.md](reports/final-report-oauth-rbac.md) | OAuth2 + RBAC integration report |
+| [reports/final-evidence-report.md](reports/final-evidence-report.md) | Full technical evidence and test results |
+| `/proof` route | Live technical evidence page (run locally at http://localhost:3001/proof) |
 | [docs/architecture.md](docs/architecture.md) | Detailed architecture documentation |
 | [docs/api-contract.md](docs/api-contract.md) | API endpoints and contracts |
 | [docs/database-design.md](docs/database-design.md) | Database schema and design |
 | [docs/event-flow.md](docs/event-flow.md) | Event-driven flow documentation |
 | [docs/testing-strategy.md](docs/testing-strategy.md) | Testing approach and strategy |
 | [docs/roadmap.md](docs/roadmap.md) | Future improvements and roadmap |
+
+> **Tip:** Run the app locally and visit [http://localhost:3001/proof](http://localhost:3001/proof) for live technical evidence including build results, API tests, and k6 load test results.
 
 ---
 

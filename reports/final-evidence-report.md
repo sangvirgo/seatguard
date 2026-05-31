@@ -1,7 +1,8 @@
 # SeatGuard — Final Evidence Report
 
-**Branch:** `feature/backend-google-oauth-admin-rbac`
+**Branch:** `main`
 **Date:** 2026-05-31
+**Last merged:** `fix/real-data-env-defaults` (commit 2bab839)
 **Status:** Portfolio/Demo-grade
 
 ## 1. Project Summary
