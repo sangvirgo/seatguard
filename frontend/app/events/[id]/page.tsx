@@ -22,9 +22,7 @@ export default function EventDetailPage() {
   const [bookingId, setBookingId] = useState<string | null>(null);
   const [confirmed, setConfirmed] = useState(false);
   const [paying, setPaying] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState('MOCK');
   const [paymentId, setPaymentId] = useState<string | null>(null);
-  const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (eventId) {
@@ -75,18 +73,12 @@ export default function EventDetailPage() {
   async function handlePay() {
     if (!bookingId) return;
     setPaying(true); setMsg('');
-    const res = await createPayment(bookingId, paymentMethod);
+    const res = await createPayment(bookingId, 'MOCK');
     if (res.ok) {
       const data = res.data.data || res.data;
       setPaymentId(data.id);
-      if (data.paymentUrl) {
-        setPaymentUrl(data.paymentUrl);
-        setMsg('Redirecting to payment provider...');
-        setMsgType('success');
-      } else if (paymentMethod === 'MOCK') {
-        setMsg('Mock payment created. Click to simulate success.');
-        setMsgType('success');
-      }
+      setMsg('Demo payment created. Click to confirm.');
+      setMsgType('success');
     } else {
       setMsg('Payment failed: ' + (res.data?.message || 'Unknown error'));
       setMsgType('error');
@@ -226,24 +218,8 @@ export default function EventDetailPage() {
 
                     {!paymentId ? (
                       <>
-                        {/* Payment Method Selector */}
-                        <div className="space-y-2">
-                          <p className="text-xs text-gray-400 font-medium">Payment Method</p>
-                          {['MOCK', 'MOMO', 'VNPAY'].map(m => (
-                            <button
-                              key={m}
-                              onClick={() => setPaymentMethod(m)}
-                              className={'w-full rounded-lg border p-3 text-left text-sm transition-all ' +
-                                (paymentMethod === m
-                                  ? 'border-blue-500 bg-blue-500/10 text-white'
-                                  : 'border-white/10 bg-white/5 text-gray-400 hover:bg-white/10')}
-                            >
-                              {m === 'MOCK' && '🧪 Mock Payment (Demo)'}
-                              {m === 'MOMO' && '📱 MoMo E-Wallet'}
-                              {m === 'VNPAY' && '💳 VNPay Gateway'}
-                            </button>
-                          ))}
-                        </div>
+                        <p className="text-xs text-gray-400 font-medium mb-2">Demo Payment</p>
+                        <p className="text-sm text-gray-500 mb-3">Use demo payment to complete this booking.</p>
                         <button
                           onClick={handlePay}
                           disabled={paying}
@@ -252,16 +228,7 @@ export default function EventDetailPage() {
                           {paying ? 'Processing...' : '💳 Pay Now'}
                         </button>
                       </>
-                    ) : paymentUrl ? (
-                      <a
-                        href={paymentUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="btn-glow w-full !bg-gradient-to-r !from-blue-600 !to-violet-600 text-center no-underline block"
-                      >
-                        🔗 Go to Payment Provider
-                      </a>
-                    ) : paymentMethod === 'MOCK' ? (
+                    ) : (
                       <button
                         onClick={handleMockConfirm}
                         disabled={paying}
@@ -269,10 +236,6 @@ export default function EventDetailPage() {
                       >
                         {paying ? 'Confirming...' : '🧪 Simulate Payment Success'}
                       </button>
-                    ) : (
-                      <div className="rounded-lg bg-yellow-500/10 border border-yellow-500/20 p-3 text-sm text-yellow-400">
-                        {paymentMethod} sandbox is not configured in this demo environment.
-                      </div>
                     )}
                   </div>
                 ) : (
