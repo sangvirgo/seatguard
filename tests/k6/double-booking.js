@@ -56,8 +56,8 @@ export function setup() {
 
   // Create event (requires ADMIN — use demo admin for setup)
   const adminLogin = http.post(`${BASE_URL}/api/auth/login`, JSON.stringify({
-    email: 'demo@seatguard.com',
-    password: 'DemoPass123!',
+    email: __ENV.DEMO_USER_EMAIL || 'demo@example.com',
+    password: __ENV.DEMO_USER_PASSWORD || 'CHANGE_ME',
   }), { headers: { 'Content-Type': 'application/json' } });
   const adminToken = adminLogin.json('accessToken');
   const adminHeaders = {

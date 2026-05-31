@@ -74,6 +74,11 @@ export async function listEvents() {
   return res.ok ? (res.data.data?.content || res.data.content || []) : [];
 }
 
+export async function listAllEvents() {
+  const res = await apiFetch('/api/events/admin/all?size=100');
+  return res.ok ? (res.data.data?.content || res.data.content || []) : [];
+}
+
 export async function getEvent(id: string) {
   const res = await apiFetch(`/api/events/${id}`);
   return res.ok ? res.data.data || res.data : null;

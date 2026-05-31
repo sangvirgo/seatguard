@@ -7,9 +7,9 @@ import { useRouter } from 'next/navigation';
 export default function LoginPage() {
   const router = useRouter();
   const [mode, setMode] = useState<'login' | 'register'>('login');
-  const [email, setEmail] = useState('demo@seatguard.com');
-  const [password, setPassword] = useState('DemoPass123!');
-  const [fullName, setFullName] = useState('Demo User');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
   const [msg, setMsg] = useState('');
   const [msgType, setMsgType] = useState<'success' | 'error'>('success');
   const [loading, setLoading] = useState(false);

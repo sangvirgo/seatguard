@@ -57,13 +57,13 @@ export default function ProofPage() {
       {/* Hero */}
       <section className="relative mb-12 pb-6 pt-4 overflow-hidden">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[200px] bg-emerald-600/10 rounded-full blur-[100px] pointer-events-none"></div>
-        <div className="container-main relative z-10 text-center">
+        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10 text-center">
           <h1 className="text-3xl font-bold text-white mb-2">🛡️ Integration Proof</h1>
           <p className="text-gray-400">Verified results from full-stack integration testing</p>
         </div>
       </section>
 
-      <div className="container-main">
+      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Key Metrics */}
         <section className="mb-12">
           <h2 className="mb-5 text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">Key Metrics</h2>

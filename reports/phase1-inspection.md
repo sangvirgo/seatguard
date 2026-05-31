@@ -288,10 +288,7 @@ public ResponseEntity<UserResponse> getProfile(@RequestHeader("Authorization") S
 Returns: `{id, email, fullName, phone, role, isActive, createdAt, updatedAt}`
 
 ### Seed/Demo User
-**No seed data or demo users exist in the codebase.** The frontend login page has pre-filled defaults:
-- Email: `demo@seatguard.com`
-- Password: `DemoPass123!`
-But this user must be registered first via the API.
+**No seed data or demo users exist in the codebase.** The frontend login page previously had pre-filled demo credentials but these have been removed for security. Configure `DEMO_USER_EMAIL` and `DEMO_USER_PASSWORD` in your `.env` file.
 
 ### OAuth2 Dependencies
 **❌ No OAuth2 dependencies exist in `pom.xml`:**
@@ -521,7 +518,8 @@ NEXT_PUBLIC_TICKET_URL: http://localhost:8084
 
 ### Login Page (`frontend/app/login/page.tsx`)
 - Only email/password login form
-- Pre-filled with `demo@seatguard.com` / `DemoPass123!`
+- Pre-filled demo credentials removed for security
+- Configure `DEMO_USER_EMAIL` / `DEMO_USER_PASSWORD` in `.env`
 - No OAuth/Google login button
 - No social login UI
 

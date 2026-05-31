@@ -5,7 +5,7 @@ import Link from 'next/link';
 import {
   isLoggedIn,
   getProfile,
-  listEvents,
+  listAllEvents,
   createEvent,
   addSection,
   generateSeats,
@@ -64,7 +64,7 @@ export default function AdminPage() {
 
   async function loadEvents() {
     try {
-      const evts = await listEvents();
+      const evts = await listAllEvents();
       console.log('Admin loaded events:', evts.length, evts);
       setEvents(evts);
     } catch (err) {
@@ -221,7 +221,7 @@ export default function AdminPage() {
       {/* Header */}
       <section className="relative pt-6 pb-10 text-center overflow-hidden">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[200px] bg-violet-600/10 rounded-full blur-[100px] pointer-events-none" />
-        <div className="container-main relative z-10">
+        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
           <h1 className="text-4xl font-bold text-white mb-2">Admin Dashboard</h1>
           <p className="text-gray-400">Manage events, sections, and seats</p>
         </div>
