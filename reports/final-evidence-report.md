@@ -58,8 +58,8 @@ SeatGuard is a high-concurrency ticket booking platform built as a portfolio pro
 - User pays → POST /api/bookings/{id}/pay → CONFIRMED
 - Payment providers:
   - MOCK: Active, full demo flow (create → confirm → ticket)
-  - MoMo: Sandbox-ready architecture, not configured by default
-  - VNPay: Sandbox-ready architecture, not configured by default
+  - MoMo: Backend adapter exists as future sandbox extension, hidden from demo UI
+  - VNPay: Backend adapter exists as future sandbox extension, hidden from demo UI
 - Commit: 009683d, 6f7237c
 
 ## 10. Kafka Booking → Ticket Evidence
@@ -91,13 +91,13 @@ SeatGuard is a high-concurrency ticket booking platform built as a portfolio pro
 | Provider | Status | Notes |
 |----------|--------|-------|
 | MOCK | Active | Full demo flow, no external dependencies |
-| MoMo | Sandbox-ready | Architecture in place, needs merchant credentials + HMAC signing |
-| VNPay | Sandbox-ready | Architecture in place, needs merchant credentials + hash signing |
+| MoMo | Backend-only | Provider adapter as future sandbox extension, hidden from demo UI |
+| VNPay | Backend-only | Provider adapter as future sandbox extension, hidden from demo UI |
 
-**Important:** MoMo/VNPay are NOT real payment integrations. They are provider placeholders with clean architecture. Real sandbox integration requires merchant credentials and signature verification (TODO in code).
+**Important:** The public demo UI shows only the Mock payment option. MoMo/VNPay backend adapters remain in the codebase as extensibility examples. Real integration requires merchant credentials and signature verification (TODO in code).
 
 ## 15. Known Limitations
-1. MoMo/VNPay are sandbox-ready architecture only — no real payment signing
+1. MoMo/VNPay are backend-only provider adapters — hidden from demo UI, no real payment signing
 2. Notification service is demo-grade, not production email/SMS provider
 3. No CI/CD pipeline
 4. No production deployment (demo on single VPS)

@@ -111,10 +111,7 @@ graph TB
 | Provider | Status | Notes |
 |----------|--------|-------|
 | Mock Payment | ✅ Active | Simulates success/failure for demo purposes |
-| MoMo | 🔧 Sandbox-ready | Integration scaffolded, sandbox endpoints configured |
-| VNPay | 🔧 Sandbox-ready | Integration scaffolded, sandbox endpoints configured |
-
-> **Note:** MoMo and VNPay are **not** real payment integrations. They exist as sandbox-ready placeholders to demonstrate extensibility. The active demo uses the mock provider only.
+> **Note:** The active demo uses the **Mock Payment** provider only. MoMo and VNPay backend adapters exist as sandbox-ready extension points but are hidden from the public demo UI.
 
 ---
 
@@ -253,7 +250,7 @@ cp .env.example .env
 
 Being honest about what this project is and isn't:
 
-- **MoMo/VNPay are sandbox-only** — No real payment processing. The mock provider handles the demo.
+- **MoMo/VNPay are backend-only** — Provider adapters exist as future sandbox extension, hidden from the demo UI. Real integration requires merchant credentials + signing/IPN verification.
 - **Real secrets are not committed** — `.env.example` has placeholders only. You need your own credentials.
 - **Notification service is demo-grade** — WebSocket push works, but no retry logic, no dead-letter queue, no production error handling.
 - **No CI/CD pipeline** — No GitHub Actions, no automated tests on push, no deployment automation.

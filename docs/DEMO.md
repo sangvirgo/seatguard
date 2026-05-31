@@ -25,7 +25,7 @@ Browser → Next.js Frontend (3001)
 2. Admin creates event + sections + seats → Publish
 3. Admin uploads event image via Cloudinary
 4. User selects seat → Hold (Redis lock + PENDING_PAYMENT)
-5. User chooses payment method (Mock / MoMo / VNPay)
+5. User completes payment (Demo/Mock — single-click)
 6. Payment confirmed → Booking CONFIRMED
 7. Kafka BOOKING_CONFIRMED → Ticket Service issues ticket
 8. Ticket check-in → QR code validation
@@ -62,10 +62,10 @@ Browser → Next.js Frontend (3001)
 | Provider | Status | Description |
 |----------|--------|-------------|
 | **MOCK** | ✅ Active | Full demo flow: create → confirm → booking confirmed → ticket |
-| **MoMo** | 🔧 Sandbox-ready | Returns "not configured" when disabled; needs merchant credentials + HMAC signing |
-| **VNPay** | 🔧 Sandbox-ready | Returns "not configured" when disabled; needs merchant credentials + hash signing |
+| **MoMo** | 🔧 Backend-only | Provider adapter exists as future sandbox extension, hidden from demo UI |
+| **VNPay** | 🔧 Backend-only | Provider adapter exists as future sandbox extension, hidden from demo UI |
 
-**Note:** MoMo/VNPay are provider options with clean architecture. Real payment requires sandbox merchant credentials and signature verification, which are not implemented (TODO markers in code).
+**Note:** The public demo UI shows only the Mock payment option. MoMo/VNPay backend adapters remain in the codebase as extensibility examples. Real payment requires merchant credentials and signature verification (TODO markers in code).
 
 ## Concurrency Proof
 

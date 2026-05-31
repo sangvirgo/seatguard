@@ -50,8 +50,7 @@
 
 ## 7. User Pays (Mock)
 
-- [ ] Payment method selector shows: Mock / MoMo / VNPay
-- [ ] Select "🧪 Mock Payment (Demo)"
+- [ ] Payment UI shows "Demo Payment" option (MoMo/VNPay hidden from UI)
 - [ ] Click "💳 Pay Now"
 - [ ] Shows "🧪 Simulate Payment Success" button
 - [ ] Click to confirm
@@ -71,8 +70,8 @@
 
 ## 10. Payment Provider States
 
-- [ ] MoMo: shows "MoMo sandbox is not configured" (when MOMO_ENABLED=false)
-- [ ] VNPay: shows "VNPay sandbox is not configured" (when VNPAY_ENABLED=false)
+- [ ] Mock payment: works end-to-end (hold → pay → ticket)
+- [ ] MoMo/VNPay: backend adapters exist but are hidden from public demo UI
 
 ## 11. Technical Evidence
 
