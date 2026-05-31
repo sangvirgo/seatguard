@@ -39,6 +39,11 @@ export default function Navbar() {
           <Link href="/tickets" className="text-sm font-medium text-gray-400 hover:text-white no-underline transition-colors">
             My Tickets
           </Link>
+          {user?.role === 'ADMIN' && (
+            <Link href="/admin" className="text-sm font-medium text-gray-400 hover:text-white no-underline transition-colors">
+              Admin
+            </Link>
+          )}
           {user ? (
             <div className="flex items-center gap-3">
               <span className="text-sm text-gray-400">{user.fullName || user.email}</span>
@@ -81,6 +86,11 @@ export default function Navbar() {
             <Link href="/tickets" onClick={() => setMenuOpen(false)} className="text-sm font-medium text-gray-400 hover:text-white no-underline transition-colors">
               My Tickets
             </Link>
+            {user?.role === 'ADMIN' && (
+              <Link href="/admin" onClick={() => setMenuOpen(false)} className="text-sm font-medium text-gray-400 hover:text-white no-underline transition-colors">
+                Admin
+              </Link>
+            )}
             {user ? (
               <div className="flex flex-col gap-3 pt-2 border-t border-white/5">
                 <span className="text-sm text-gray-400">{user.fullName || user.email}</span>
