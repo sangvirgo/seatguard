@@ -64,8 +64,12 @@ export default function AdminPage() {
 
   async function loadEvents() {
     try {
-      setEvents(await listEvents());
-    } catch {}
+      const evts = await listEvents();
+      console.log('Admin loaded events:', evts.length, evts);
+      setEvents(evts);
+    } catch (err) {
+      console.error('Failed to load events:', err);
+    }
   }
 
   function showMsg(text: string, type: 'success' | 'error' = 'success') {
@@ -157,12 +161,13 @@ export default function AdminPage() {
   }
 
   // ── Image Upload ──────────────────────────────────────
-  async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>, eventId?: string) {
     const file = e.target.files?.[0];
-    if (!file || !uploadEventId) return;
+    const targetId = eventId || uploadEventId;
+    if (!file || !targetId) return;
     setUploading(true);
     try {
-      const res = await uploadEventImage(uploadEventId, file);
+      const res = await uploadEventImage(targetId, file);
       if (res.ok) {
         showMsg('Image uploaded!');
         loadEvents();
@@ -373,36 +378,27 @@ export default function AdminPage() {
             )}
           </div>
 
-          {/* Right: Image Upload */}
+          {/* Right: Image Upload Guide */}
           <div className="glass-card p-6">
-            <h2 className="text-lg font-bold text-white mb-4">📸 Upload Event Image</h2>
-            {events.length === 0 ? (
-              <p className="text-sm text-gray-500">No events yet. Create one first.</p>
-            ) : (
-              <div className="flex flex-col gap-3">
-                <select value={uploadEventId} onChange={(e) => setUploadEventId(e.target.value)}>
-                  <option value="">Select event...</option>
-                  {events.map((e: any) => (
-                    <option key={e.id} value={e.id}>{e.name}</option>
-                  ))}
-                </select>
-                <label
-                  className={`btn-glow !py-2.5 text-center cursor-pointer ${
-                    !uploadEventId || uploading ? 'opacity-50 pointer-events-none' : ''
-                  }`}
-                >
-                  {uploading ? 'Uploading...' : 'Choose Image'}
-                  <input
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    onChange={handleImageUpload}
-                    className="hidden"
-                    disabled={!uploadEventId || uploading}
-                  />
-                </label>
-                <p className="text-xs text-gray-500">JPEG, PNG, or WebP. Max 5MB.</p>
+            <h2 className="text-lg font-bold text-white mb-4">📸 Event Image Upload</h2>
+            <p className="text-sm text-gray-400 mb-4">
+              Upload images directly from each event row in the table below.
+              Each event has its own upload button.
+            </p>
+            <div className="flex flex-col gap-3">
+              <div className="flex items-start gap-3">
+                <span className="text-lg">1️⃣</span>
+                <p className="text-sm text-gray-400">Find the event in the table below</p>
               </div>
-            )}
+              <div className="flex items-start gap-3">
+                <span className="text-lg">2️⃣</span>
+                <p className="text-sm text-gray-400">Click the Upload button in the Image column</p>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="text-lg">3️⃣</span>
+                <p className="text-sm text-gray-400">Select a JPEG, PNG, or WebP image (max 5MB)</p>
+              </div>
+            </div>
 
             {/* Technical Evidence link */}
             <div className="mt-6 pt-4 border-t border-white/5">
@@ -433,7 +429,7 @@ export default function AdminPage() {
                     <th className="text-left py-3 px-3 text-xs text-gray-500 uppercase tracking-wider hidden sm:table-cell">Venue</th>
                     <th className="text-left py-3 px-3 text-xs text-gray-500 uppercase tracking-wider hidden md:table-cell">Category</th>
                     <th className="text-left py-3 px-3 text-xs text-gray-500 uppercase tracking-wider">Status</th>
-                    <th className="text-left py-3 px-3 text-xs text-gray-500 uppercase tracking-wider hidden lg:table-cell">Image</th>
+                    <th className="text-left py-3 px-3 text-xs text-gray-500 uppercase tracking-wider">Image</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -451,12 +447,32 @@ export default function AdminPage() {
                           {e.status || 'DRAFT'}
                         </span>
                       </td>
-                      <td className="py-3 px-3 hidden lg:table-cell">
-                        {e.coverImageUrl ? (
-                          <span className="text-xs text-green-400">✓ Uploaded</span>
-                        ) : (
-                          <span className="text-xs text-gray-500">—</span>
-                        )}
+                      <td className="py-3 px-3">
+                        <div className="flex items-center gap-2">
+                          {e.coverImageUrl && (
+                            <img
+                              src={e.coverImageUrl}
+                              alt={e.name}
+                              className="w-10 h-10 rounded-lg object-cover border border-white/10"
+                            />
+                          )}
+                          <label
+                            className={`text-xs px-2 py-1 rounded-lg border cursor-pointer transition-colors ${
+                              uploading
+                                ? 'border-white/5 text-gray-600 pointer-events-none'
+                                : 'border-white/10 text-blue-400 hover:bg-white/5 hover:text-blue-300'
+                            }`}
+                          >
+                            {uploading ? '...' : e.coverImageUrl ? 'Replace' : 'Upload'}
+                            <input
+                              type="file"
+                              accept="image/jpeg,image/png,image/webp"
+                              onChange={(ev) => handleImageUpload(ev, e.id)}
+                              className="hidden"
+                              disabled={uploading}
+                            />
+                          </label>
+                        </div>
                       </td>
                     </tr>
                   ))}
