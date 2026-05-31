@@ -28,7 +28,7 @@
 
 ## 4. Admin Creates Event
 
-- [ ] Login as ADMIN (demo@seatguard.com / DemoPass123!)
+- [ ] Login as ADMIN (use credentials from your .env file)
 - [ ] Navigate to /events
 - [ ] Click "+ Create Demo Event"
 - [ ] Event appears in listing

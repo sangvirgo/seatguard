@@ -103,11 +103,11 @@ seatguard-kafka                  Up (healthy)              0.0.0.0:9092->9092/tc
 | Match | File | Assessment |
 |-------|------|------------|
 | `const token = searchParams.get('token')` | `auth/callback/page.tsx` | ✅ Code logic, reads URL param |
-| `useState('DemoPass123!')` | `login/page.tsx` | ⚠️ **WARNING** — Hardcoded demo password in source |
+| ~~hardcoded demo password~~ | `login/page.tsx` | ✅ **FIXED** — Hardcoded demo password removed |
 | `localStorage.getItem('token')` | `lib/api.ts` | ✅ Code logic, reads stored JWT |
 | `headers['Authorization'] = Bearer ${token}` | `lib/api.ts` | ✅ Code logic, sets auth header |
 
-**Verdict:** ⚠️ One finding — `DemoPass123!` hardcoded in `frontend/app/login/page.tsx`. This is a demo/test password but should be removed before production. No real API keys, tokens, or secrets leaked in tracked files.
+**Verdict:** ✅ All clear — Hardcoded demo password has been removed from `frontend/app/login/page.tsx`. No real API keys, tokens, or secrets leaked in tracked files.
 
 ---
 
@@ -150,8 +150,8 @@ seatguard-kafka                  Up (healthy)              0.0.0.0:9092->9092/tc
 - **Smoke tests:** ✅ All endpoints returning expected HTTP codes
 - **Content centering:** ✅ `max-w-7xl` + `mx-auto` present on homepage and admin
 - **Admin endpoint:** ✅ Registered, secured (403 without auth)
-- **Secret safety:** ⚠️ Minor — hardcoded demo password in login page (not a blocker)
+- **Secret safety:** ✅ Clean — no hardcoded secrets remaining
 
 ### Minor Findings (Non-blocking)
-1. **Demo password hardcoded** — `DemoPass123!` in `frontend/app/login/page.tsx` line 11. Consider using env var or removing before production.
+1. ~~**Demo password hardcoded**~~ — ✅ **FIXED**: Hardcoded password removed from `frontend/app/login/page.tsx`. Now uses empty fields; configure via `.env`.
 2. **No lint/type-check scripts** — `npm run lint` and `npm run type-check` are not defined in `package.json`. Consider adding them for CI.
