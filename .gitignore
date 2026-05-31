@@ -40,3 +40,9 @@ Thumbs.db
 
 # ─── TypeScript ────────────────────────────────────────
 *.tsbuildinfo
+
+# ─── Agent Reports ─────────────────────────────────────
+agent-*.md
+finalize-report.md
+fix-*.md
+merge-docs-report.md
