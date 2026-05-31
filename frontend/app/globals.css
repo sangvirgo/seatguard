@@ -21,7 +21,7 @@ body {
   overflow-x: hidden;
 }
 
-/* ─── Reusable Container ────────────────────────────── */
+/* ─── Reusable Container ──────────────────────────────── */
 .container-main {
   margin-left: auto;
   margin-right: auto;
@@ -43,7 +43,7 @@ body {
   }
 }
 
-/* ─── Background ─────────────────────────────────────── */
+/* ─── Background ──────────────────────────────────────── */
 .bg-gradient-hero {
   background: radial-gradient(ellipse at 50% 30%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
               radial-gradient(ellipse at 50% 70%, rgba(139, 92, 246, 0.06) 0%, transparent 50%),
@@ -51,7 +51,7 @@ body {
               #050510;
 }
 
-/* ─── Glass Card ─────────────────────────────────────── */
+/* ─── Glass Card ──────────────────────────────────────── */
 .glass-card {
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.06);
@@ -63,9 +63,10 @@ body {
   background: rgba(255, 255, 255, 0.05);
   border-color: rgba(255, 255, 255, 0.1);
   transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
 }
 
-/* ─── Gradient Text ──────────────────────────────────── */
+/* ─── Gradient Text ───────────────────────────────────── */
 .gradient-text {
   background: linear-gradient(135deg, #60a5fa, #a78bfa, #f472b6);
   -webkit-background-clip: text;
@@ -73,7 +74,7 @@ body {
   background-clip: text;
 }
 
-/* ─── Metric Card ────────────────────────────────────── */
+/* ─── Metric Card ─────────────────────────────────────── */
 .metric-card {
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(255, 255, 255, 0.05);
@@ -85,9 +86,22 @@ body {
 .metric-card:hover {
   border-color: rgba(99, 102, 241, 0.3);
   box-shadow: 0 0 20px rgba(99, 102, 241, 0.1);
+  transform: translateY(-1px);
+}
+.metric-card-gradient-blue {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(139, 92, 246, 0.04) 100%);
+}
+.metric-card-gradient-green {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(59, 130, 246, 0.04) 100%);
+}
+.metric-card-gradient-violet {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(236, 72, 153, 0.04) 100%);
+}
+.metric-card-gradient-amber {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(239, 68, 68, 0.04) 100%);
 }
 
-/* ─── Seat Map ───────────────────────────────────────── */
+/* ─── Seat Map ────────────────────────────────────────── */
 .seat {
   width: 32px;
   height: 32px;
@@ -127,7 +141,7 @@ body {
   cursor: not-allowed;
 }
 
-/* ─── Ticket Card ────────────────────────────────────── */
+/* ─── Ticket Card ─────────────────────────────────────── */
 .ticket-card {
   background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.05));
   border: 2px dashed rgba(99, 102, 241, 0.3);
@@ -157,14 +171,14 @@ body {
   50% { opacity: 1; }
 }
 
-/* ─── Navbar ─────────────────────────────────────────── */
+/* ─── Navbar ──────────────────────────────────────────── */
 .navbar {
   background: rgba(5, 5, 16, 0.8);
   backdrop-filter: blur(20px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* ─── Button Glow ────────────────────────────────────── */
+/* ─── Button Glow ─────────────────────────────────────── */
 .btn-glow {
   display: inline-block;
   background: linear-gradient(135deg, #3b82f6, #8b5cf6);
@@ -179,7 +193,7 @@ body {
   text-decoration: none;
 }
 .btn-glow:hover {
-  box-shadow: 0 6px 25px rgba(59, 130, 246, 0.5);
+  box-shadow: 0 6px 25px rgba(59, 130, 246, 0.5), 0 0 40px rgba(59, 130, 246, 0.15);
   transform: translateY(-1px);
 }
 .btn-glow:active {
@@ -190,8 +204,17 @@ body {
   cursor: not-allowed;
   transform: none;
 }
+.btn-glow-vivid {
+  background: linear-gradient(135deg, #2563eb, #7c3aed, #db2777);
+  background-size: 200% 200%;
+  animation: gradientShift 3s ease infinite;
+}
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
 
-/* ─── Badge ──────────────────────────────────────────── */
+/* ─── Badge ───────────────────────────────────────────── */
 .badge-status {
   display: inline-flex;
   align-items: center;
@@ -209,11 +232,13 @@ body {
 .badge-status.PENDING_PAYMENT { background: rgba(234, 179, 8, 0.15); color: #fbbf24; }
 .badge-status.CONFIRMED { background: rgba(16, 185, 129, 0.15); color: #34d399; }
 
-/* ─── Form Inputs ────────────────────────────────────── */
+/* ─── Form Inputs ─────────────────────────────────────── */
 input[type="text"],
 input[type="email"],
 input[type="password"],
-select {
+input[type="number"],
+select,
+textarea {
   width: 100%;
   padding: 12px 16px;
   background: rgba(255, 255, 255, 0.03);
@@ -224,10 +249,12 @@ select {
   transition: all 0.2s ease;
 }
 input:focus,
-select:focus {
+select:focus,
+textarea:focus {
   outline: none;
   border-color: rgba(99, 102, 241, 0.5);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1), 0 0 20px rgba(99, 102, 241, 0.05);
+  background: rgba(255, 255, 255, 0.04);
 }
 select {
   appearance: none;
@@ -242,7 +269,7 @@ select option {
   color: #e2e8f0;
 }
 
-/* ─── Toast ──────────────────────────────────────────── */
+/* ─── Toast ───────────────────────────────────────────── */
 .toast-success {
   background: rgba(16, 185, 129, 0.15);
   border: 1px solid rgba(16, 185, 129, 0.3);
@@ -258,7 +285,7 @@ select option {
   padding: 14px 20px;
 }
 
-/* ─── Flow Step ──────────────────────────────────────── */
+/* ─── Flow Step ───────────────────────────────────────── */
 .flow-step {
   display: flex;
   align-items: center;
@@ -281,7 +308,80 @@ select option {
   color: white;
 }
 
-/* ─── Scrollbar ──────────────────────────────────────── */
+/* ─── Section Divider ─────────────────────────────────── */
+.section-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.06) 50%, transparent);
+  max-width: 80rem;
+  margin: 0 auto;
+}
+
+/* ─── Page Load Animation ─────────────────────────────── */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-in-up {
+  animation: fadeInUp 0.5s ease-out both;
+}
+.animate-delay-100 { animation-delay: 0.1s; }
+.animate-delay-200 { animation-delay: 0.2s; }
+.animate-delay-300 { animation-delay: 0.3s; }
+
+/* ─── Step Connector (desktop only) ───────────────────── */
+.step-connector {
+  position: relative;
+}
+.step-connector::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: -12px;
+  width: 24px;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(99, 102, 241, 0.3), transparent);
+}
+.step-connector:last-child::after {
+  display: none;
+}
+@media (max-width: 1023px) {
+  .step-connector::after {
+    display: none;
+  }
+}
+
+/* ─── Form Label ──────────────────────────────────────── */
+.form-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #9ca3af;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.form-label-desc {
+  display: block;
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 2px;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* ─── Table Row Alternating ───────────────────────────── */
+.table-row-alt:nth-child(even) {
+  background: rgba(255, 255, 255, 0.01);
+}
+
+/* ─── Scrollbar ───────────────────────────────────────── */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -297,7 +397,7 @@ select option {
   background: rgba(255, 255, 255, 0.2);
 }
 
-/* ─── Line Clamp Utilities ────────────────────────────── */
+/* ─── Line Clamp Utilities ─────────────────────────────── */
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -311,7 +411,7 @@ select option {
   overflow: hidden;
 }
 
-/* ─── Responsive ─────────────────────────────────────── */
+/* ─── Responsive ──────────────────────────────────────── */
 @media (max-width: 640px) {
   .seat {
     width: 26px;

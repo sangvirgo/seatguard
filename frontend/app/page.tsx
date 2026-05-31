@@ -48,10 +48,10 @@ export default function HomePage() {
     <div>
       {/* ═══════════ HERO ═══════════ */}
       <section className="relative overflow-hidden pb-24 pt-20 text-center">
-        {/* Glow effects */}
-        <div className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-blue-600/12 rounded-full blur-[140px]" />
-        <div className="pointer-events-none absolute top-32 left-1/4 w-[500px] h-[350px] bg-violet-600/10 rounded-full blur-[120px]" />
-        <div className="pointer-events-none absolute top-16 right-1/4 w-[350px] h-[250px] bg-pink-600/8 rounded-full blur-[100px]" />
+        {/* Glow effects — reduced size */}
+        <div className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[350px] bg-blue-600/10 rounded-full blur-[120px]" />
+        <div className="pointer-events-none absolute top-32 left-1/4 w-[350px] h-[250px] bg-violet-600/8 rounded-full blur-[100px]" />
+        <div className="pointer-events-none absolute top-16 right-1/4 w-[250px] h-[180px] bg-pink-600/6 rounded-full blur-[80px]" />
 
         <div className="relative z-10 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
           {user && (
@@ -59,7 +59,7 @@ export default function HomePage() {
               Welcome back, <strong>{user.fullName || user.email}</strong> 👋
             </p>
           )}
-          <h1 className="mb-6 text-4xl sm:text-5xl lg:text-7xl font-extrabold leading-tight tracking-tight text-white">
+          <h1 className="mb-6 text-3xl sm:text-4xl lg:text-6xl font-extrabold leading-tight tracking-tight text-white">
             Discover Unforgettable<br />
             <span className="gradient-text">Live Experiences</span>
           </h1>
@@ -68,8 +68,8 @@ export default function HomePage() {
             No double-booking, ever.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Link href="/events" className="inline-block bg-gradient-to-r from-blue-600 to-violet-600 text-white rounded-xl px-8 py-3.5 text-lg font-semibold no-underline shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 transition-all">
-              Browse Events
+            <Link href="/events" className="btn-glow btn-glow-vivid inline-flex items-center gap-2 text-lg !px-8 !py-3.5">
+              Browse Events <span className="group-hover:translate-x-1 transition-transform">→</span>
             </Link>
             <Link
               href="/tickets"
@@ -79,7 +79,7 @@ export default function HomePage() {
             </Link>
           </div>
           <div className="mt-8">
-            <Link href="/proof" className="text-[10px] text-gray-600 opacity-60 hover:opacity-100 no-underline transition-colors">
+            <Link href="/proof" className="text-xs text-gray-500 hover:text-gray-400 no-underline transition-colors">
               Engineering proof →
             </Link>
           </div>
@@ -87,15 +87,17 @@ export default function HomePage() {
       </section>
 
       {/* ═══════════ UPCOMING EVENTS ═══════════ */}
-      <section className="py-16">
+      <div className="section-divider" />
+      <section className="py-20">
         <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mb-8 flex items-end justify-between">
+          <div className="mb-10 flex items-end justify-between">
             <div>
+              <span className="inline-block text-xs font-semibold uppercase tracking-wider text-blue-400 mb-2">Discover</span>
               <h2 className="text-2xl font-bold text-white">Upcoming Events</h2>
               <p className="mt-1 text-sm text-gray-400">Don&apos;t miss out on these amazing experiences</p>
             </div>
-            <Link href="/events" className="text-sm text-blue-400 hover:text-blue-300 no-underline transition-colors">
-              View all →
+            <Link href="/events" className="text-sm font-medium text-blue-400 hover:text-blue-300 no-underline transition-colors inline-flex items-center gap-1">
+              View all <span>→</span>
             </Link>
           </div>
           {displayEvents.length > 0 ? (
@@ -123,9 +125,11 @@ export default function HomePage() {
       </section>
 
       {/* ═══════════ HOW IT WORKS ═══════════ */}
-      <section className="py-16">
+      <div className="section-divider" />
+      <section className="py-20">
         <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mb-10 text-center">
+          <div className="mb-12 text-center">
+            <span className="inline-block text-xs font-semibold uppercase tracking-wider text-violet-400 mb-2">Process</span>
             <h2 className="text-2xl font-bold text-white">How SeatGuard Works</h2>
             <p className="mt-2 text-sm text-gray-400">Five simple steps to your perfect seat</p>
           </div>
@@ -133,8 +137,8 @@ export default function HomePage() {
             {steps.map((step, i) => {
               const Icon = step.icon;
               return (
-                <div key={i} className="glass-card overflow-hidden p-6 min-h-[180px] text-center">
-                  <div className="mb-3 mx-auto h-8 w-8 rounded-full bg-gradient-to-br from-blue-600 to-violet-600 flex items-center justify-center text-xs font-bold text-white shadow-lg shadow-blue-500/30">
+                <div key={i} className={`glass-card overflow-hidden p-6 min-h-[180px] text-center ${i < steps.length - 1 ? 'step-connector' : ''}`}>
+                  <div className="mb-3 mx-auto h-9 w-9 rounded-full bg-gradient-to-br from-blue-600 to-violet-600 flex items-center justify-center text-sm font-bold text-white shadow-lg shadow-blue-500/30">
                     {i + 1}
                   </div>
                   <div className="mb-3 flex justify-center">
@@ -150,7 +154,8 @@ export default function HomePage() {
       </section>
 
       {/* ═══════════ WHY SEATGUARD ═══════════ */}
-      <section className="py-16">
+      <div className="section-divider" />
+      <section className="py-20">
         <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mb-10 text-center">
             <h2 className="text-2xl font-bold text-white">Why Choose SeatGuard</h2>

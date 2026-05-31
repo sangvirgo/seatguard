@@ -24,8 +24,8 @@ export default function Navbar() {
     <header className="sticky top-0 z-50 border-b border-white/5 bg-black/60 backdrop-blur-xl">
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 flex items-center justify-between py-4">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 no-underline">
-          <span className="text-2xl">🛡️</span>
+        <Link href="/" className="flex items-center gap-2.5 no-underline group">
+          <span className="text-2xl drop-shadow-[0_0_8px_rgba(99,102,241,0.4)] group-hover:drop-shadow-[0_0_12px_rgba(99,102,241,0.6)] transition-all">🛡️</span>
           <span className="text-lg font-bold text-white">
             Seat<span className="gradient-text">Guard</span>
           </span>
@@ -33,14 +33,14 @@ export default function Navbar() {
 
         {/* Desktop Nav */}
         <nav className="hidden md:flex items-center gap-6">
-          <Link href="/events" className="text-sm font-medium text-gray-400 hover:text-white no-underline transition-colors">
+          <Link href="/events" className="text-sm font-medium text-gray-400 hover:text-white no-underline transition-colors px-1.5 py-0.5">
             Events
           </Link>
-          <Link href="/tickets" className="text-sm font-medium text-gray-400 hover:text-white no-underline transition-colors">
+          <Link href="/tickets" className="text-sm font-medium text-gray-400 hover:text-white no-underline transition-colors px-1.5 py-0.5">
             My Tickets
           </Link>
           {user?.role === 'ADMIN' && (
-            <Link href="/admin" className="text-sm font-medium text-gray-400 hover:text-white no-underline transition-colors">
+            <Link href="/admin" className="text-sm font-medium text-gray-400 hover:text-white no-underline transition-colors px-1.5 py-0.5">
               Admin
             </Link>
           )}
