@@ -34,7 +34,7 @@ public class OAuth2Controller {
     @Value("${spring.security.oauth2.client.registration.google.scope:email,profile}")
     private String scope;
 
-    @Value("${oauth2.frontend-url:http://206.189.47.198:3001}")
+    @Value("${oauth2.frontend-url:http://localhost:3001}")
     private String frontendUrl;
 
     public OAuth2Controller(OAuth2Service oAuth2Service) {

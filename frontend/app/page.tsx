@@ -9,15 +9,6 @@ import {
   ShieldCheck, Zap, Smartphone, Users
 } from 'lucide-react';
 
-const featuredDemo = [
-  { id: 'demo-1', name: 'Summer Music Festival 2026', venue: 'National Stadium, HCMC', category: 'CONCERT', status: 'PUBLISHED', startTime: '2026-07-15T19:00:00Z' },
-  { id: 'demo-2', name: 'Tech Conference Asia', venue: 'Convention Center, Hanoi', category: 'WORKSHOP', status: 'PUBLISHED', startTime: '2026-08-20T09:00:00Z' },
-  { id: 'demo-3', name: 'Champions League Final Screening', venue: 'Fan Zone, Da Nang', category: 'SPORTS', status: 'PUBLISHED', startTime: '2026-06-01T20:00:00Z' },
-  { id: 'demo-4', name: 'Broadway Night: Phantom', venue: 'Opera House, HCMC', category: 'THEATER', status: 'PUBLISHED', startTime: '2026-09-10T19:30:00Z' },
-  { id: 'demo-5', name: 'EDM Countdown NYE 2027', venue: 'Landmark 81, HCMC', category: 'CONCERT', status: 'PUBLISHED', startTime: '2026-12-31T22:00:00Z' },
-  { id: 'demo-6', name: 'AI & Future Tech Summit', venue: 'SECC, HCMC', category: 'WORKSHOP', status: 'PUBLISHED', startTime: '2026-10-05T08:30:00Z' },
-];
-
 const steps = [
   { icon: Search, title: 'Browse Events', desc: 'Find your perfect event' },
   { icon: Armchair, title: 'Pick Your Seat', desc: 'Interactive seat map' },
@@ -39,10 +30,8 @@ export default function HomePage() {
 
   useEffect(() => {
     if (isLoggedIn()) getProfile().then(u => { if (u) setUser(u); });
-    listEvents().then(e => { if (e.length >= 3) setEvents(e.slice(0, 6)); });
+    listEvents().then(e => setEvents(e.slice(0, 6)));
   }, []);
-
-  const displayEvents = events.length > 0 ? events : featuredDemo;
 
   return (
     <div>
@@ -100,9 +89,9 @@ export default function HomePage() {
               View all <span>→</span>
             </Link>
           </div>
-          {displayEvents.length > 0 ? (
+          {events.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center">
-              {displayEvents.map((e: any) => (
+              {events.map((e: any) => (
                 <EventCard
                   key={e.id}
                   id={e.id}

@@ -20,5 +20,5 @@ COPY --from=build /app/.next/static ./.next/static
 COPY --from=build /app/public ./public
 EXPOSE 3001
 ENV PORT=3001
-ENV API_GATEWAY_URL=http://api-gateway:8080/api/:path*
+ENV API_GATEWAY_URL=http://api-gateway:8080
 CMD ["node", "server.js"]

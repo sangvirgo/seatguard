@@ -250,10 +250,7 @@ services:
       - api-gateway
     environment:
       PORT: "3001"
-      NEXT_PUBLIC_AUTH_URL: http://localhost:8081
-      NEXT_PUBLIC_EVENT_URL: http://localhost:8082
-      NEXT_PUBLIC_BOOKING_URL: http://localhost:8083
-      NEXT_PUBLIC_TICKET_URL: http://localhost:8084
+      # NEXT_PUBLIC_* URLs removed — frontend uses Next.js rewrites via /api/* path, not direct browser fetches
     networks:
       - seatguard-net
 
