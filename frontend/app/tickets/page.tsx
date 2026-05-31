@@ -77,7 +77,7 @@ export default function TicketsPage() {
       {/* Hero */}
       <section className="relative mb-10 pb-6 pt-4 overflow-hidden">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[200px] bg-violet-600/10 rounded-full blur-[100px] pointer-events-none"></div>
-        <div className="container-main relative z-10">
+        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="flex items-end justify-between flex-wrap gap-4">
             <div>
               <h1 className="text-3xl font-bold text-white">My Tickets</h1>
@@ -93,7 +93,7 @@ export default function TicketsPage() {
         </div>
       </section>
 
-      <div className="container-main">
+      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Messages */}
         {msg && (
           <div className={`mb-6 ${msgType === 'error' ? 'toast-error' : 'toast-success'}`}>

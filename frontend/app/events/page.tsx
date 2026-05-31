@@ -94,7 +94,7 @@ export default function EventsPage() {
       {/* Hero */}
       <section className="relative mb-12 pb-8 pt-4 text-center overflow-hidden">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[200px] bg-violet-600/10 rounded-full blur-[100px] pointer-events-none"></div>
-        <div className="container-main relative z-10">
+        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
           <h1 className="text-4xl font-bold text-white mb-3">Explore Events</h1>
           <p className="text-gray-400 mb-8">Find your next unforgettable experience</p>
           {/* Search */}
@@ -110,7 +110,7 @@ export default function EventsPage() {
         </div>
       </section>
 
-      <div className="container-main">
+      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Category Chips */}
         <div className="mb-8 flex flex-wrap justify-center gap-2">
           {categories.map(cat => (

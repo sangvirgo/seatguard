@@ -108,7 +108,7 @@ export default function EventDetailPage() {
       {/* Event Hero */}
       <section className="relative mb-10 pb-6 pt-4 overflow-hidden">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[250px] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none"></div>
-        <div className="container-main relative z-10">
+        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
           {event.coverImageUrl && (
             <div className="mb-6 rounded-xl overflow-hidden">
               <img src={event.coverImageUrl} alt={event.name} className="w-full h-64 object-cover" />
@@ -137,7 +137,7 @@ export default function EventDetailPage() {
         </div>
       </section>
 
-      <div className="container-main">
+      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Messages */}
         {msg && (
           <div className={'mb-6 ' + (msgType === 'error' ? 'toast-error' : 'toast-success')}>

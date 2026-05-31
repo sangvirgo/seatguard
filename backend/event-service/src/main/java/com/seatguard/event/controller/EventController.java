@@ -68,6 +68,16 @@ public class EventController {
         return ResponseEntity.ok(ApiResponse.ok(events));
     }
 
+    @GetMapping("/admin/all")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<Page<EventResponse>>> listAllEvents(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "100") int size) {
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Page<EventResponse> events = eventService.listAllEvents(pageRequest);
+        return ResponseEntity.ok(ApiResponse.ok(events));
+    }
+
     @PostMapping("/{eventId}/publish")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<EventResponse>> publishEvent(@PathVariable UUID eventId) {

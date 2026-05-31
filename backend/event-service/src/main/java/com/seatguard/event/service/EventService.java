@@ -86,6 +86,11 @@ public class EventService {
                 .map(EventResponse::from);
     }
 
+    @Transactional(readOnly = true)
+    public Page<EventResponse> listAllEvents(Pageable pageable) {
+        return eventRepository.findAll(pageable).map(EventResponse::from);
+    }
+
     public EventResponse publishEvent(UUID eventId) {
         Event event = getEventOrThrow(eventId);
         if (event.getStatus() != EventStatus.DRAFT) {
