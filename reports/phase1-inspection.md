@@ -316,7 +316,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/seatguard_auth
     username: ${DB_USERNAME:seatguard}
-    password: ${DB_PASSWORD:seatguard_dev_2026}
+    password: ${DB_PASSWORD:CHANGE_ME}
   jpa:
     hibernate:
       ddl-auto: update
@@ -563,7 +563,7 @@ NEXT_PUBLIC_TICKET_URL: http://localhost:8084
 DB_HOST: postgres
 SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/seatguard_auth
 SPRING_DATASOURCE_USERNAME: seatguard
-SPRING_DATASOURCE_PASSWORD: seatguard_dev_2026
+SPRING_DATASOURCE_PASSWORD: CHANGE_ME
 ```
 **⚠️ No JWT_SECRET, no OAuth env vars set in Docker.**
 

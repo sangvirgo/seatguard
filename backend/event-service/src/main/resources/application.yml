@@ -11,7 +11,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/seatguard_event
     username: ${DB_USERNAME:seatguard}
-    password: ${DB_PASSWORD:seatguard_dev_2026}
+    password: ${DB_PASSWORD:CHANGE_ME}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:

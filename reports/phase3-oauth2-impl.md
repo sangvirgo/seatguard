@@ -100,7 +100,7 @@ Google → GET /oauth2/callback/google?code=... (gateway:8080)
 | Variable | Description | Example |
 |----------|-------------|---------|
 | `GOOGLE_CLIENT_ID` | Google OAuth2 client ID | `123456-xxx.apps.googleusercontent.com` |
-| `GOOGLE_CLIENT_SECRET` | Google OAuth2 client secret | `GOCSPX-xxx` |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth2 client secret | `CHANGE_ME` |
 | `GOOGLE_REDIRECT_URI` | Callback URL registered in Google Console | `http://206.189.47.198:8080/oauth2/callback/google` |
 | `ADMIN_EMAILS` | Comma-separated emails for auto-admin role | `admin@example.com,sang@example.com` |
 

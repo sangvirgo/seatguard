@@ -3,7 +3,7 @@ export default () => ({
     host: process.env.DB_HOST || 'localhost',
     port: parseInt(process.env.DB_PORT ?? '5432', 10),
     username: process.env.DB_USERNAME || 'seatguard',
-    password: process.env.DB_PASSWORD || 'seatguard_dev_2026',
+    password: process.env.DB_PASSWORD || 'CHANGE_ME',
     database: process.env.DB_NAME || 'seatguard_notification',
   },
   kafka: {

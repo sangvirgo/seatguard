@@ -5,7 +5,7 @@ services:
     container_name: seatguard-postgres
     environment:
       POSTGRES_USER: seatguard
-      POSTGRES_PASSWORD: seatguard_dev_2026
+      POSTGRES_PASSWORD: CHANGE_ME
       POSTGRES_DB: seatguard
     ports:
       - "5432:5432"
@@ -93,11 +93,11 @@ services:
       DB_HOST: postgres
       DB_PORT: "5432"
       DB_USERNAME: seatguard
-      DB_PASSWORD: seatguard_dev_2026
+      DB_PASSWORD: CHANGE_ME
       DB_NAME: seatguard_auth
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/seatguard_auth
       SPRING_DATASOURCE_USERNAME: seatguard
-      SPRING_DATASOURCE_PASSWORD: seatguard_dev_2026
+      SPRING_DATASOURCE_PASSWORD: CHANGE_ME
       JWT_SECRET: ${JWT_SECRET}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
@@ -125,7 +125,7 @@ services:
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/seatguard_event
       SPRING_DATASOURCE_USERNAME: seatguard
-      SPRING_DATASOURCE_PASSWORD: seatguard_dev_2026
+      SPRING_DATASOURCE_PASSWORD: CHANGE_ME
       JWT_SECRET: ${JWT_SECRET}
       CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
       CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
@@ -157,7 +157,7 @@ services:
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/seatguard_booking
       SPRING_DATASOURCE_USERNAME: seatguard
-      SPRING_DATASOURCE_PASSWORD: seatguard_dev_2026
+      SPRING_DATASOURCE_PASSWORD: CHANGE_ME
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: "6379"
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
@@ -200,7 +200,7 @@ services:
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/seatguard_ticket
       SPRING_DATASOURCE_USERNAME: seatguard
-      SPRING_DATASOURCE_PASSWORD: seatguard_dev_2026
+      SPRING_DATASOURCE_PASSWORD: CHANGE_ME
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       JWT_SECRET: ${JWT_SECRET}
@@ -228,7 +228,7 @@ services:
       DB_HOST: postgres
       DB_PORT: "5432"
       DB_USERNAME: seatguard
-      DB_PASSWORD: seatguard_dev_2026
+      DB_PASSWORD: CHANGE_ME
       DB_NAME: seatguard_notification
       KAFKA_BROKERS: kafka:9092
     healthcheck:
